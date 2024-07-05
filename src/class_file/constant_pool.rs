@@ -95,6 +95,9 @@ impl ConstantPool {
         &self.constants[index as usize - 1]
     }
 
+    pub fn get_to_string(&self, index: u16) -> String {
+        self.info_to_string(self.get(index))
+    }
 
     pub fn to_string(&self) -> String {
         let mut s = String::new();
@@ -113,18 +116,18 @@ impl ConstantPool {
                 let name = self.info_to_string(name);
                 let descriptor = self.info_to_string(descriptor);
                 format!("{}[{}]", name, descriptor)
-            },
+            }
             Info::ClassInfo(c) => {
                 let name = self.get(c.name_index);
                 self.info_to_string(name)
-            },
+            }
             Info::MethodRefInfo(m) => {
                 let class = self.get(m.class_index);
                 let name_and_type = self.get(m.name_and_type_index);
                 let class = self.info_to_string(class);
                 let name_and_type = self.info_to_string(name_and_type);
                 format!("{}.{}()", class, name_and_type)
-            },
+            }
             Info::FieldRefInfo(f) => {
                 let class = self.get(f.class_index);
                 let name_and_type = self.get(f.name_and_type_index);
@@ -138,6 +141,4 @@ impl ConstantPool {
             }
         }
     }
-
-
 }

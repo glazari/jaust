@@ -26,18 +26,22 @@ ClassFile {
  *
  */
 
+mod access_flags;
 mod constant_pool;
 mod file_reader;
 
+use access_flags::AccessFlags;
 use constant_pool::ConstantPool;
-use constant_pool::Info;
 use file_reader::FileReader;
 use std::io::Result;
 
 struct ClassFile {
     minor_version: u16,
     major_version: u16,
-    constant_pool: Vec<Info>,
+    constant_pool: ConstantPool,
+    access_flags: AccessFlags,
+    this_class: u16,
+    super_class: u16,
 }
 
 pub fn read_class_file(filename: &str) -> Result<()> {
@@ -58,5 +62,23 @@ pub fn read_class_file(filename: &str) -> Result<()> {
 
     println!("constant pool info");
     println!("{}", constant_pool.to_string());
+
+    let access_flags = AccessFlags::new(file.read_u2_to_u16()?);
+    println!("access flags: {:?}", access_flags.flag_vector());
+
+    let this_class = file.read_u2_to_u16()?;
+    let super_class = file.read_u2_to_u16()?;
+
+    println!(
+        "this class: {:?} {}",
+        this_class,
+        constant_pool.get_to_string(this_class)
+    );
+    println!(
+        "super class: {:?} {}",
+        super_class,
+        constant_pool.get_to_string(super_class)
+    );
+
     Ok(())
 }

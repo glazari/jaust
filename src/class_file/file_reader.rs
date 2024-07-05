@@ -1,5 +1,5 @@
-use std::io::Read;
 use std::fs::File;
+use std::io::Read;
 use std::io::Result;
 
 pub struct FileReader {
@@ -11,15 +11,13 @@ type U1 = u8;
 type U2 = [u8; 2];
 type U4 = [u8; 4];
 
-
 impl FileReader {
     pub fn new(filename: &str) -> Result<FileReader> {
         let f = FileReader {
-            file: File::open(filename)?
+            file: File::open(filename)?,
         };
         Ok(f)
     }
-    
 
     pub fn read_u1(&mut self) -> Result<U1> {
         let mut buf = [0; 1];
@@ -45,7 +43,7 @@ impl FileReader {
         Ok(buf)
     }
 
-    pub fn read_string(&mut self,) -> Result<String> {
+    pub fn read_string(&mut self) -> Result<String> {
         let length = self.read_u2_to_u16()?;
         let mut buf = vec![0; length as usize];
         self.file.read_exact(&mut buf)?;
