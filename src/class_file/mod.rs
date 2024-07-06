@@ -29,10 +29,15 @@ ClassFile {
 mod access_flags;
 mod constant_pool;
 mod file_reader;
+mod interfaces;
+mod fields;
+mod attributes;
 
 use access_flags::AccessFlags;
 use constant_pool::ConstantPool;
 use file_reader::FileReader;
+use interfaces::Interfaces;
+use fields::Fields;
 use std::io::Result;
 
 struct ClassFile {
@@ -42,6 +47,7 @@ struct ClassFile {
     access_flags: AccessFlags,
     this_class: u16,
     super_class: u16,
+    interfaces: Interfaces,
 }
 
 pub fn read_class_file(filename: &str) -> Result<()> {
@@ -79,6 +85,13 @@ pub fn read_class_file(filename: &str) -> Result<()> {
         super_class,
         constant_pool.get_to_string(super_class)
     );
+
+    let interfaces = Interfaces::from(&mut file)?;
+    println!("{}", interfaces.to_string(&constant_pool));
+
+    let fields = Fields::from(&mut file)?;
+
+    println!("{}", fields.to_string(&constant_pool));
 
     Ok(())
 }

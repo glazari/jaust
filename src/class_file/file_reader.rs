@@ -43,6 +43,12 @@ impl FileReader {
         Ok(buf)
     }
 
+    pub fn read_u4_to_u32(&mut self) -> Result<u32> {
+        let mut buf = [0; 4];
+        self.file.read_exact(&mut buf)?;
+        Ok(u32::from_be_bytes(buf))
+    }
+
     pub fn read_string(&mut self) -> Result<String> {
         let length = self.read_u2_to_u16()?;
         let mut buf = vec![0; length as usize];
