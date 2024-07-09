@@ -31,6 +31,7 @@ mod constant_pool;
 mod file_reader;
 mod interfaces;
 mod fields;
+mod methods;
 mod attributes;
 
 use access_flags::AccessFlags;
@@ -38,7 +39,10 @@ use constant_pool::ConstantPool;
 use file_reader::FileReader;
 use interfaces::Interfaces;
 use fields::Fields;
-use std::io::Result;
+use methods::Methods;
+
+
+use anyhow::Result;
 
 struct ClassFile {
     minor_version: u16,
@@ -92,6 +96,10 @@ pub fn read_class_file(filename: &str) -> Result<()> {
     let fields = Fields::from(&mut file)?;
 
     println!("{}", fields.to_string(&constant_pool));
+
+    let methods = Methods::from(&mut file)?;
+
+    println!("{}", methods.to_string(&constant_pool));
 
     Ok(())
 }

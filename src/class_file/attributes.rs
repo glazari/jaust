@@ -1,4 +1,4 @@
-use std::io::Result;
+use anyhow::Result;
 use super::file_reader::FileReader;
 use super::constant_pool::ConstantPool;
 
@@ -19,11 +19,11 @@ impl Attributes {
         let mut attributes = Vec::new();
 
         let attributes_count = file.read_u2_to_u16()?;
-        for _i in 1..attributes_count {
+        for _i in 0..attributes_count {
             let attribute_name_index = file.read_u2_to_u16()?;
             let attribute_length = file.read_u4_to_u32()?;
             let mut info = Vec::new();
-            for _j in 1..attribute_length {
+            for _j in 0..attribute_length {
                 info.push(file.read_u1()?);
             }
             attributes.push(Attribute {

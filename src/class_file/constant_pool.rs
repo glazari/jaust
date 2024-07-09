@@ -1,5 +1,5 @@
 use crate::class_file::file_reader::FileReader;
-use std::io::Result;
+use anyhow::Result;
 
 pub struct ConstantPool {
     constants: Vec<Info>,
