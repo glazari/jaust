@@ -67,7 +67,8 @@ impl Methods {
             ));
             s.push_str(&format!("- name: {}\n", cp.get_to_string(method.name_index)));
             s.push_str(&format!("- descriptor: {}\n", cp.get_to_string(method.descriptor_index)));
-            s.push_str(&format!("{:?}", &method.attributes));
+            //s.push_str(&format!("{:?}", &method.attributes));
+            s.push_str(&format!("{}\n", method.attributes.to_string(cp)));
         }
         s
     }

@@ -35,4 +35,15 @@ impl Attributes {
 
         Ok(Attributes { attributes })
     }
+
+    pub fn to_string(&self, cp: &ConstantPool) -> String {
+        let mut s = String::new();
+
+        s.push_str("Attributes");
+        for att in &self.attributes {
+            s.push_str(&format!("name {}\n", cp.get_to_string(att.attribute_name_index)));
+            s.push_str(&format!("length {}\n", att.attribute_length));
+        }
+        s
+    }
 }
