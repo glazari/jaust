@@ -36,7 +36,7 @@ enum AccessFlag {
 }
 
 impl Methods {
-    pub fn from(file: &mut FileReader) -> Result<Methods> {
+    pub fn from(file: &mut FileReader, cp: &ConstantPool) -> Result<Methods> {
         let mut methods = Vec::new();
 
         let methods_count = file.read_u2_to_u16()?;
@@ -44,7 +44,7 @@ impl Methods {
             let access_flags = AccessFlags::new(file.read_u2_to_u16()?);
             let name_index = file.read_u2_to_u16()?;
             let descriptor_index = file.read_u2_to_u16()?;
-            let attributes = Attributes::from(file)?;
+            let attributes = Attributes::from(file, cp)?;
 
             methods.push(Method {
                 access_flags,

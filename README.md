@@ -19,4 +19,4 @@ exactly what information is available to the JVM when it runs the code. The java
 byte code in the class file also contains all the information about method calls. So by parsing all the class files in a project, we can build a call graph of the project.
 
 The documentation for the format is well written in the oracle docs:
-https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.3
+https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html

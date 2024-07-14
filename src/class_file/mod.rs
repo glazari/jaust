@@ -33,6 +33,7 @@ mod interfaces;
 mod fields;
 mod methods;
 mod attributes;
+mod code_attribute;
 
 use access_flags::AccessFlags;
 use constant_pool::ConstantPool;
@@ -93,11 +94,11 @@ pub fn read_class_file(filename: &str) -> Result<()> {
     let interfaces = Interfaces::from(&mut file)?;
     println!("{}", interfaces.to_string(&constant_pool));
 
-    let fields = Fields::from(&mut file)?;
+    let fields = Fields::from(&mut file, &constant_pool)?;
 
     println!("{}", fields.to_string(&constant_pool));
 
-    let methods = Methods::from(&mut file)?;
+    let methods = Methods::from(&mut file, &constant_pool)?;
 
     println!("{}", methods.to_string(&constant_pool));
 

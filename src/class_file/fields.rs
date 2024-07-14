@@ -72,7 +72,7 @@ impl AccessFlags {
 }
 
 impl Fields {
-    pub fn from(file: &mut FileReader) -> Result<Fields> {
+    pub fn from(file: &mut FileReader, cp: &ConstantPool) -> Result<Fields> {
         let mut fields = Vec::new();
 
         let fields_count = file.read_u2_to_u16()?;
@@ -81,7 +81,7 @@ impl Fields {
             let name_index = file.read_u2_to_u16()?;
             let descriptor_index = file.read_u2_to_u16()?;
 
-            let attributes = Attributes::from(file)?; 
+            let attributes = Attributes::from(file, cp)?; 
 
             fields.push(Field {
                 access_flags,
