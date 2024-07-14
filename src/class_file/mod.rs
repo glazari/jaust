@@ -34,6 +34,7 @@ mod fields;
 mod methods;
 mod attributes;
 mod code_attribute;
+mod bytecode;
 
 use access_flags::AccessFlags;
 use constant_pool::ConstantPool;

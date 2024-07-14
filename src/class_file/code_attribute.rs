@@ -1,5 +1,6 @@
 use super::attributes::AttStart;
 use super::attributes::Attributes;
+use super::bytecode::ByteCode;
 use super::constant_pool::ConstantPool;
 use super::file_reader::FileReader;
 use anyhow::Result;
@@ -10,7 +11,8 @@ pub struct CodeAttribute {
     attribute_length: u32,
     max_stack: u16,
     max_locals: u16,
-    code: Vec<u8>,
+    code_length: u32,
+    code: Vec<ByteCode>,
     exception_table: Vec<ExceptionTable>,
     attributes: Attributes,
 }
@@ -34,8 +36,11 @@ impl CodeAttribute {
         let code_length = file.read_u4_to_u32()?;
 
         let mut code = Vec::new();
-        for _i in 0..code_length {
-            code.push(file.read_u1()?);
+        let mut curr_code = 0;
+        while curr_code < code_length {
+            let (byte_code, len) = ByteCode::parse(file)?;
+            curr_code += len;
+            code.push(byte_code);
         }
 
         let exception_table_length = file.read_u2_to_u16()?;
@@ -60,6 +65,7 @@ impl CodeAttribute {
             attribute_length: att_start.attribute_length,
             max_stack,
             max_locals,
+            code_length,
             code,
             exception_table,
             attributes,
@@ -76,12 +82,14 @@ impl CodeAttribute {
 
         s.push_str(&format!(
             "Code: max_stack: {}, max_locals: {}, code_length: {}\n",
-            self.max_stack,
-            self.max_locals,
-            self.code.len()
+            self.max_stack, self.max_locals, self.code_length
         ));
 
         // TODO print code
+        s.push_str(&format!("Code: {}\n", self.code.len()));
+        for c in &self.code {
+            s.push_str(&format!("- {}\n", c.to_string()));
+        }
 
         s.push_str(&format!(
             "Exception table: {}\n",
