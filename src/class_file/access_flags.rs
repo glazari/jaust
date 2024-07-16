@@ -1,6 +1,6 @@
 pub struct AccessFlags(u16);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum AccessFlag {
     Public,
     Final,

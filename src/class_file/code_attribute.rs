@@ -85,7 +85,6 @@ impl CodeAttribute {
             self.max_stack, self.max_locals, self.code_length
         ));
 
-        // TODO print code
         s.push_str(&format!("Code: {}\n", self.code.len()));
         for c in &self.code {
             s.push_str(&format!("- {}\n", c.to_string()));

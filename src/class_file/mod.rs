@@ -27,81 +27,103 @@ ClassFile {
  */
 
 mod access_flags;
+mod attributes;
+mod bytecode;
+mod code_attribute;
 mod constant_pool;
+mod fields;
 mod file_reader;
 mod interfaces;
-mod fields;
+mod javap_printer;
 mod methods;
-mod attributes;
-mod code_attribute;
-mod bytecode;
 
 use access_flags::AccessFlags;
+use attributes::Attributes;
 use constant_pool::ConstantPool;
+use fields::Fields;
 use file_reader::FileReader;
 use interfaces::Interfaces;
-use fields::Fields;
 use methods::Methods;
 
+use crate::print_debug as p;
+pub use javap_printer::print_tldr as javap_print;
 
 use anyhow::Result;
 
-struct ClassFile {
-    minor_version: u16,
-    major_version: u16,
-    constant_pool: ConstantPool,
-    access_flags: AccessFlags,
-    this_class: u16,
-    super_class: u16,
-    interfaces: Interfaces,
+pub struct ClassFile {
+    pub minor_version: u16,
+    pub major_version: u16,
+    pub constant_pool: ConstantPool,
+    pub access_flags: AccessFlags,
+    pub this_class: u16,
+    pub super_class: u16,
+    pub interfaces: Interfaces,
+    pub fields: Fields,
+    pub methods: Methods,
+    pub attributes: Attributes,
 }
 
-pub fn read_class_file(filename: &str) -> Result<()> {
+pub fn read_class_file(filename: &str) -> Result<ClassFile> {
     let mut file = FileReader::new(filename)?;
 
     let magic = file.read_u4()?;
-    println!("magic: {:?}", magic);
-    println!("magic: {:x?}", magic);
-    // magic number is 0xCAFEBABE
     assert_eq!(magic, [0xCA, 0xFE, 0xBA, 0xBE]);
 
-    let minor_version = file.read_u2()?;
-    let major_version = file.read_u2()?;
-    println!("versions");
-    println!("minor, major: {:?}, {:?}", minor_version, major_version);
+    let minor_version = file.read_u2_to_u16()?;
+    let major_version = file.read_u2_to_u16()?;
+    p!(
+        "versions (minor, major): ({:?}, {:?})",
+        minor_version,
+        major_version
+    );
 
     let constant_pool = ConstantPool::from(&mut file)?;
 
-    println!("constant pool info");
-    println!("{}", constant_pool.to_string());
+    p!("constant pool info");
+    p!("{}", constant_pool.to_string());
 
     let access_flags = AccessFlags::new(file.read_u2_to_u16()?);
-    println!("access flags: {:?}", access_flags.flag_vector());
+    p!("access flags: {:?}", access_flags.flag_vector());
 
     let this_class = file.read_u2_to_u16()?;
     let super_class = file.read_u2_to_u16()?;
 
-    println!(
+    p!(
         "this class: {:?} {}",
         this_class,
         constant_pool.get_to_string(this_class)
     );
-    println!(
+    p!(
         "super class: {:?} {}",
         super_class,
         constant_pool.get_to_string(super_class)
     );
 
     let interfaces = Interfaces::from(&mut file)?;
-    println!("{}", interfaces.to_string(&constant_pool));
+    p!("{}", interfaces.to_string(&constant_pool));
 
     let fields = Fields::from(&mut file, &constant_pool)?;
 
-    println!("{}", fields.to_string(&constant_pool));
+    p!("{}", fields.to_string(&constant_pool));
 
     let methods = Methods::from(&mut file, &constant_pool)?;
 
-    println!("{}", methods.to_string(&constant_pool));
+    p!("{}", methods.to_string(&constant_pool));
 
-    Ok(())
+    let attributes = Attributes::from(&mut file, &constant_pool)?;
+
+    p!("{}", attributes.to_string(&constant_pool));
+
+    Ok(ClassFile {
+        minor_version,
+        major_version,
+        constant_pool,
+        access_flags,
+        this_class,
+        super_class,
+        interfaces,
+        fields,
+        methods,
+        attributes,
+    })
 }

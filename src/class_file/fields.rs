@@ -6,22 +6,22 @@ use super::attributes::Attributes;
 
 #[derive(Debug)]
 pub struct Fields {
-    fields: Vec<Field>,
+    pub fields: Vec<Field>,
 }
 
 #[derive(Debug)]
 pub struct Field {
-    access_flags: AccessFlags,
-    name_index: u16,
-    descriptor_index: u16,
-    attributes: Attributes,
+    pub access_flags: AccessFlags,
+    pub name_index: u16,
+    pub descriptor_index: u16,
+    pub attributes: Attributes,
 }
 
 #[derive(Debug)]
 pub struct AccessFlags(u16);
 
-#[derive(Debug)]
-enum AccessFlag {
+#[derive(Debug, PartialEq)]
+pub enum AccessFlag {
     Public,
     Private,
     Protected,

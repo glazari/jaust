@@ -2,8 +2,10 @@ use anyhow::Result;
 use super::file_reader::FileReader;
 use super::constant_pool::ConstantPool;
 
+use crate::print_debug as p;
+
 pub struct Interfaces {
-    interfaces: Vec<u16>,
+    pub interfaces: Vec<u16>,
 }
 
 
@@ -15,7 +17,7 @@ impl Interfaces {
         for _i in 0..interfaces_count {
             interfaces.push(file.read_u2_to_u16()?);
         }
-        println!("interfaces: {:?}", interfaces);
+        p!("interfaces: {:?}", interfaces);
 
         Ok(Interfaces { interfaces })
     }

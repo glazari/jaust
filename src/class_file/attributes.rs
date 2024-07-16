@@ -5,12 +5,13 @@ use anyhow::Result;
 
 #[derive(Debug)]
 pub struct Attributes {
-    attributes: Vec<Attribute>,
+    pub attributes: Vec<Attribute>,
 }
 
 #[derive(Debug)]
 pub enum Attribute {
     Code(CodeAttribute),
+    SourceFile(SourceFileAttribute),
     GenericAttribute(GenericAttribute),
 }
 
@@ -25,6 +26,13 @@ pub struct GenericAttribute {
     attribute_name_index: u16,
     attribute_length: u32,
     info: Vec<u8>,
+}
+
+#[derive(Debug)]
+pub struct SourceFileAttribute {
+    attribute_name_index: u16,
+    attribute_length: u32,
+    sourcefile_index: u16,
 }
 
 impl Attributes {
@@ -47,6 +55,10 @@ impl Attributes {
                     let att = CodeAttribute::parse(file, &att_start, cp)?;
                     attributes.push(Attribute::Code(att));
                 }
+                "SourceFile" => {
+                    let att = SourceFileAttribute::parse(file, &att_start)?;
+                    attributes.push(Attribute::SourceFile(att));
+                }
                 _ => {
                     let att = GenericAttribute::parse(file, &att_start)?;
                     attributes.push(Attribute::GenericAttribute(att));
@@ -66,6 +78,18 @@ impl Attributes {
         }
         s
     }
+
+    pub fn get_source_file(&self, cp: &ConstantPool) -> Option<String> {
+        for att in &self.attributes {
+            match att {
+                Attribute::SourceFile(att) => {
+                    return Some(att.to_string(cp));
+                }
+                _ => {}
+            }
+        }
+        None
+    }
 }
 
 impl GenericAttribute {
@@ -82,6 +106,21 @@ impl GenericAttribute {
     }
 }
 
+impl SourceFileAttribute {
+    fn parse(file: &mut FileReader, att_start: &AttStart) -> Result<SourceFileAttribute> {
+        let sourcefile_index = file.read_u2_to_u16()?;
+        Ok(SourceFileAttribute {
+            attribute_name_index: att_start.attribute_name_index,
+            attribute_length: att_start.attribute_length,
+            sourcefile_index,
+        })
+    }
+
+    pub fn to_string(&self, cp: &ConstantPool) -> String {
+        cp.get_to_string(self.sourcefile_index)
+    }
+}
+
 impl Attribute {
     pub fn to_string(&self, cp: &ConstantPool) -> String {
         let mut s = String::new();
@@ -92,6 +131,11 @@ impl Attribute {
                     cp.get_to_string(att.attribute_name_index)
                 ));
                 s.push_str(&format!("length {}\n", att.attribute_length));
+            }
+            Attribute::SourceFile(att) => {
+                s.push_str("SourceFile ");
+                s.push_str(&att.to_string(cp));
+                s.push_str("\n");
             }
             Attribute::Code(att) => {
                 s.push_str(&att.to_string(cp));
