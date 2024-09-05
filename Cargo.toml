@@ -2,6 +2,10 @@
 name = "jaust"
 version = "0.1.0"
 edition = "2021"
+description = "Java ecosystem tools in rust a learning project"
+license = "MIT"
+documentation = "https://docs.rs/jaust"
+repository = "https://github.com/glazari/jaust"
 
 [dependencies]
 anyhow = "1.0.86"
