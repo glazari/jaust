@@ -1,4 +1,4 @@
-# Ruva (Rust-Java)
+# Jaust (Java in Rust)
 
 
 This is a project to learn more about java and the jvm by wrtting rust library to interact
@@ -6,6 +6,7 @@ with different parts of the java ecosystem.
 
 Initially, I will be focusing on the following areas:
 - class file parsing
+    - parse the method descriptors signatures
 - jar file parsing
 - Java source code parsing
 - Maven project parsing
