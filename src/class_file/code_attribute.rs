@@ -105,4 +105,8 @@ impl CodeAttribute {
 
         s
     }
+
+    pub fn code(&self) -> &Vec<ByteCode> {
+        &self.code
+    }
 }

@@ -47,6 +47,7 @@ use methods::Methods;
 
 use crate::print_debug as p;
 pub use javap_printer::print_tldr as javap_print;
+pub use javap_printer::Options as JavapOptions;
 
 use anyhow::Result;
 
@@ -126,4 +127,19 @@ pub fn read_class_file(filename: &str) -> Result<ClassFile> {
         methods,
         attributes,
     })
+}
+
+pub fn raw_string(cf: &ClassFile) -> String {
+    let mut s = String::new();
+    s.push_str(&format!("minor_version: {}\n", cf.minor_version));
+    s.push_str(&format!("major_version: {}\n", cf.major_version));
+    s.push_str(&cf.constant_pool.to_string());
+    s.push_str(&format!("access_flags: {:?}\n", cf.access_flags.flag_vector()));
+    s.push_str(&format!("this_class: {}\n", cf.constant_pool.get_to_string(cf.this_class)));
+    s.push_str(&format!("super_class: {}\n", cf.constant_pool.get_to_string(cf.super_class)));
+    s.push_str(&cf.interfaces.to_string(&cf.constant_pool));
+    s.push_str(&cf.fields.to_string(&cf.constant_pool));
+    s.push_str(&cf.methods.to_string(&cf.constant_pool));
+    s.push_str(&cf.attributes.to_string(&cf.constant_pool));
+    s
 }

@@ -1,4 +1,6 @@
 use super::attributes::Attributes;
+use super::attributes::Attribute;
+use super::code_attribute::CodeAttribute;
 use super::file_reader::FileReader;
 use super::constant_pool::ConstantPool;
 use anyhow::Result;
@@ -71,6 +73,17 @@ impl Methods {
             s.push_str(&format!("{}\n", method.attributes.to_string(cp)));
         }
         s
+    }
+}
+
+impl Method {
+    pub fn get_code(&self) -> Option<&CodeAttribute> {
+        for attribute in &self.attributes.attributes {
+            if let Attribute::Code(code) = attribute {
+                return Some(code);
+            }
+        }
+        None
     }
 }
 

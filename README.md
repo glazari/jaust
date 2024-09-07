@@ -11,6 +11,17 @@ Initially, I will be focusing on the following areas:
 - Java source code parsing
 - Maven project parsing
 
+## Features
+
+### jaustp commad (javap like command)
+
+```bash
+jaustp <class file> # prints public methods and fields of class
+jaustp -p <class file> # prints all methods and fields of class
+jaustp -c <class file> # prints the bytecode of the methods
+
+jaustp --raw <class file> # prints a much more verbose output describing the class file (mustly for my own debugging)
+```
 
 ## Class File Parsing
 
@@ -21,3 +32,10 @@ byte code in the class file also contains all the information about method calls
 
 The documentation for the format is well written in the oracle docs:
 https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html
+
+# TODO next
+- [ ] fill out more bytecode instructins in the bytecode enum
+- [ ] parse more specific attributes
+    - [ ] LineNumberTable
+    - [ ] LocalVariableTable
+    - [ ] SourceDebugExtension

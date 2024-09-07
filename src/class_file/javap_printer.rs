@@ -1,17 +1,23 @@
 use super::access_flags::AccessFlag;
-use super::constant_pool::ConstantPool;
 use super::fields::AccessFlag as FieldAccessFlag;
 use super::methods::AccessFlag as MethodAccessFlag;
-use super::methods::Method;
 use super::ClassFile;
+use super::methods::Method;
+use super::constant_pool::ConstantPool;
 
 use std::str::Chars;
 use anyhow::Result;
 use anyhow::anyhow;
 use std::iter::Peekable;
 
+
+pub struct Options {
+    pub private: bool,
+    pub code: bool,
+}
+
 /// Print a summary of the class file. like javap does by default.
-pub fn print_tldr(cf: &ClassFile) {
+pub fn print_tldr(cf: &ClassFile, opts: &Options) {
     let mut out = String::new();
     let source = cf.attributes.get_source_file(&cf.constant_pool);
     if let Some(source) = source {
@@ -19,16 +25,16 @@ pub fn print_tldr(cf: &ClassFile) {
     }
     add_class_line(cf, &mut out);
 
-    add_fields(cf, &mut out);
+    add_fields(cf, &mut out, opts);
 
-    add_methods(cf, &mut out);
+    add_methods(cf, &mut out, opts);
 
     out.push_str("}\n");
 
     print!("{}", out);
 }
 
-fn add_fields(cf: &ClassFile, out: &mut String) {
+fn add_fields(cf: &ClassFile, out: &mut String, opts: &Options) {
     let indent = "  ";
     for field in &cf.fields.fields {
         let field_name = cf.constant_pool.get_to_string(field.name_index);
@@ -41,7 +47,9 @@ fn add_fields(cf: &ClassFile, out: &mut String) {
             modifiers.push("public");
         } else if flags.contains(&FieldAccessFlag::Private) {
             modifiers.push("private");
-            continue;
+            if !opts.private {
+                continue;
+            }
         } else if flags.contains(&FieldAccessFlag::Protected) {
             modifiers.push("protected");
         }
@@ -74,18 +82,9 @@ fn add_fields(cf: &ClassFile, out: &mut String) {
         out.push_str(&modifiers.join(" "));
         out.push_str(" ");
 
-        match field_descriptor.as_str().get(0..1) {
-            Some("L") => out.push_str(&field_descriptor[1..].replace("/", ".").replace(";", "")),
-            Some("I") => out.push_str("int"),
-            Some("J") => out.push_str("long"),
-            Some("F") => out.push_str("float"),
-            Some("D") => out.push_str("double"),
-            Some("S") => out.push_str("short"),
-            Some("B") => out.push_str("byte"),
-            Some("C") => out.push_str("char"),
-            Some("Z") => out.push_str("boolean"),
-            _ => out.push_str(&field_descriptor),
-        }
+        let mut descriptor = field_descriptor.chars().peekable();
+        let _type = parse_type_descriptor(&mut descriptor).unwrap_or_else(|e| e.to_string());
+        out.push_str(&_type);
 
         out.push_str(" ");
         out.push_str(&field_name);
@@ -93,11 +92,19 @@ fn add_fields(cf: &ClassFile, out: &mut String) {
     }
 }
 
-fn add_methods(cf: &ClassFile, out: &mut String) {
+fn add_methods(cf: &ClassFile, out: &mut String, opts: &Options) {
     let indent = "  ";
     for method in &cf.methods.methods {
+        let flags = method.access_flags.flag_vector();
+
+        if flags.contains(&MethodAccessFlag::Private) && !opts.private {
+            continue;
+        }
+
+        let o = flags.iter().map(|f| f.to_str().to_string()).collect::<Vec<String>>().join(" ");
         out.push_str(indent);
-        add_method_modifiers(method, &cf.constant_pool, out);
+        out.push_str(&o);
+
         out.push_str(" ");
 
         let method_name = cf.constant_pool.get_to_string(method.name_index);
@@ -122,6 +129,10 @@ fn add_methods(cf: &ClassFile, out: &mut String) {
         out.push_str("(");
         out.push_str(&signature.args.join(", "));
         out.push_str(");\n");
+        if opts.code {
+            print_code(&method, &cf.constant_pool, out);
+            out.push_str("\n");
+        }
     }
 }
 
@@ -199,33 +210,6 @@ struct MethodSignature {
     return_type: String,
 }
 
-fn add_method_modifiers(method: &Method, cp: &ConstantPool, out: &mut String) {
-    let flags = method.access_flags.flag_vector();
-    let o = flags.iter().map(|f| f.to_str().to_string()).collect::<Vec<String>>().join(" ");
-    out.push_str(&o);
-    return;
-    
-    if flags.contains(&MethodAccessFlag::Public) {
-        out.push_str("public");
-    } else if flags.contains(&MethodAccessFlag::Private) {
-        out.push_str("private");
-    } else if flags.contains(&MethodAccessFlag::Protected) {
-        out.push_str("protected");
-    }
-
-    if flags.contains(&MethodAccessFlag::Static) {
-        out.push_str("static");
-    }
-
-    if flags.contains(&MethodAccessFlag::Final) {
-        out.push_str("final");
-    }
-
-    if flags.contains(&MethodAccessFlag::Synchronized) {
-        out.push_str("synchronized");
-    }
-}
-
 pub fn add_class_line(cf: &ClassFile, out: &mut String) {
     add_class_modifiers(cf, out);
 
@@ -280,6 +264,16 @@ fn add_class_modifiers(cf: &ClassFile, out: &mut String) {
 
     out.push_str(&modifiers.join(" "));
 }
+
+
+fn print_code(method: &Method, cp: &ConstantPool, out: &mut String) {
+    let code = method.get_code().unwrap();
+    for c in code.code(){
+        out.push_str(&format!("\t- {}\n", c.to_string()));
+    }
+}
+
+
 
 #[cfg(test)]
 mod tests {
