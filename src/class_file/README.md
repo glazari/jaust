@@ -29,4 +29,15 @@ The constant pool is the one that contains all of the strings in the file the re
 contains references to indexes in the constant pool.
 
 
+# Parsing method and field descriptors
 
+the field and method descriptors are stored in a special
+string format that does reminds the java syntax but is not the same.
+
+example:
+```
+Lcom/example/Example; -> com.example.Example
+(II)V -> void method(int, int)
+([Ljava/lang/String;)V -> void method(String[])
+([I)V -> void method(int[])
+```

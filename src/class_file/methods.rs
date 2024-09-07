@@ -5,22 +5,22 @@ use anyhow::Result;
 
 #[derive(Debug)]
 pub struct Methods {
-    methods: Vec<Method>,
+    pub methods: Vec<Method>,
 }
 
 #[derive(Debug)]
 pub struct Method {
-    access_flags: AccessFlags,
-    name_index: u16,
-    descriptor_index: u16,
-    attributes: Attributes,
+    pub access_flags: AccessFlags,
+    pub name_index: u16,
+    pub descriptor_index: u16,
+    pub attributes: Attributes,
 }
 
 #[derive(Debug)]
 pub struct AccessFlags(u16);
 
-#[derive(Debug)]
-enum AccessFlag {
+#[derive(Debug, PartialEq)]
+pub enum AccessFlag {
     Public,
     Private,
     Protected,
@@ -95,6 +95,25 @@ impl AccessFlags {
         add_flag(&mut flags, self.0, 0x0800, AccessFlag::Strict);
         add_flag(&mut flags, self.0, 0x1000, AccessFlag::Synthetic);
         flags
+    }
+}
+
+impl AccessFlag {
+    pub fn to_str(&self) -> &'static str {
+        match self {
+            AccessFlag::Public => "public",
+            AccessFlag::Private => "private",
+            AccessFlag::Protected => "protected",
+            AccessFlag::Static => "static",
+            AccessFlag::Final => "final",
+            AccessFlag::Synchronized => "synchronized",
+            AccessFlag::Bridge => "bridge",
+            AccessFlag::Varargs => "varargs",
+            AccessFlag::Native => "native",
+            AccessFlag::Abstract => "abstract",
+            AccessFlag::Strict => "strict",
+            AccessFlag::Synthetic => "synthetic",
+        }
     }
 }
 

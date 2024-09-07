@@ -1,13 +1,11 @@
 import java.util.List;
 
 public class Example extends B implements C {
-	public static String what = "Field"	;
+	public static String what = "something in the what field";
 	public int asdfds;
 	private double my_double;
 
-
 	public double lllllll;
-
 
 	public static void main(String[] args) {
 	}
@@ -15,6 +13,7 @@ public class Example extends B implements C {
 	public long add2(long a, long b) {
 		return a + b;
 	}
+
 	public int add(int a, int b) {
 		return 2;
 	}
@@ -28,5 +27,8 @@ interface C {
 	int add(int a, int b);
 }
 
-class MyClass1 {}
-class MyClass2 {}
+class MyClass1 {
+}
+
+class MyClass2 {
+}
