@@ -1,6 +1,6 @@
 [package]
 name = "jaust"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Java ecosystem tools in rust a learning project"
 license = "MIT"
