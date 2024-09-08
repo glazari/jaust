@@ -12,6 +12,7 @@ pub struct Attributes {
 pub enum Attribute {
     Code(CodeAttribute),
     SourceFile(SourceFileAttribute),
+    LineNumberTable(LineNumberTableAttribute),
     GenericAttribute(GenericAttribute),
 }
 
@@ -33,6 +34,19 @@ pub struct SourceFileAttribute {
     attribute_name_index: u16,
     attribute_length: u32,
     sourcefile_index: u16,
+}
+
+#[derive(Debug)]
+pub struct LineNumberTableAttribute {
+    attribute_name_index: u16,
+    attribute_length: u32,
+    line_number_table: Vec<LineNumberTable>,
+}
+
+#[derive(Debug)]
+pub struct LineNumberTable {
+    start_pc: u16, // The instruction offset from the start of the code array at which the line number begins.
+    line_number: u16, // The line number in the original source file.
 }
 
 impl Attributes {
@@ -58,6 +72,10 @@ impl Attributes {
                 "SourceFile" => {
                     let att = SourceFileAttribute::parse(file, &att_start)?;
                     attributes.push(Attribute::SourceFile(att));
+                }
+                "LineNumberTable" => {
+                    let att = LineNumberTableAttribute::parse(file, &att_start)?;
+                    attributes.push(Attribute::LineNumberTable(att));
                 }
                 _ => {
                     let att = GenericAttribute::parse(file, &att_start)?;
@@ -121,6 +139,35 @@ impl SourceFileAttribute {
     }
 }
 
+impl LineNumberTableAttribute {
+    fn parse(file: &mut FileReader, att_start: &AttStart) -> Result<LineNumberTableAttribute> {
+        let line_number_table_length = file.read_u2_to_u16()?;
+        let mut line_number_table = Vec::with_capacity(line_number_table_length as usize);
+        for _j in 0..line_number_table_length {
+            let start_pc = file.read_u2_to_u16()?;
+            let line_number = file.read_u2_to_u16()?;
+            line_number_table.push(LineNumberTable { start_pc, line_number });
+        }
+        Ok(LineNumberTableAttribute {
+            attribute_name_index: att_start.attribute_name_index,
+            attribute_length: att_start.attribute_length,
+            line_number_table,
+        })
+    }
+
+    pub fn to_string(&self, _cp: &ConstantPool) -> String {
+        let mut s = String::new();
+        s.push_str("LineNumberTable\n");
+        for lnt in &self.line_number_table {
+            s.push_str(&format!(
+                "\t- start_pc {} line_number {}\n",
+                lnt.start_pc, lnt.line_number
+            ));
+        }
+        s
+    }
+}
+
 impl Attribute {
     pub fn to_string(&self, cp: &ConstantPool) -> String {
         let mut s = String::new();
@@ -138,6 +185,9 @@ impl Attribute {
                 s.push_str("\n");
             }
             Attribute::Code(att) => {
+                s.push_str(&att.to_string(cp));
+            }
+            Attribute::LineNumberTable(att) => {
                 s.push_str(&att.to_string(cp));
             }
         }

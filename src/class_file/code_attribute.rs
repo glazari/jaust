@@ -87,16 +87,16 @@ impl CodeAttribute {
 
         s.push_str(&format!("Code: {}\n", self.code.len()));
         for c in &self.code {
-            s.push_str(&format!("- {}\n", c.to_string()));
+            s.push_str(&format!("\t- {}\n", c.to_string()));
         }
 
         s.push_str(&format!(
-            "Exception table: {}\n",
+            "  Exception table: {}\n",
             self.exception_table.len()
         ));
         for et in &self.exception_table {
             s.push_str(&format!(
-                "start_pc: {}, end_pc: {}, handler_pc: {}, catch_type: {}\n",
+                "\t- start_pc: {}, end_pc: {}, handler_pc: {}, catch_type: {}\n",
                 et.start_pc, et.end_pc, et.handler_pc, et.catch_type
             ));
         }
