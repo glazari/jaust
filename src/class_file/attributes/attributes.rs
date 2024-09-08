@@ -1,4 +1,4 @@
-use super::{CodeAttribute, GenericAttribute, LineNumberTableAttribute, SourceFileAttribute};
+use super::{CodeAttribute, GenericAttribute, LineNumberTableAttribute, SourceFileAttribute, StackMapTableAttribute};
 
 use crate::class_file::{constant_pool::ConstantPool, file_reader::FileReader};
 use anyhow::Result;
@@ -13,6 +13,7 @@ pub enum Attribute {
     Code(CodeAttribute),
     SourceFile(SourceFileAttribute),
     LineNumberTable(LineNumberTableAttribute),
+    StackMapTable(StackMapTableAttribute),
     GenericAttribute(GenericAttribute),
 }
 
@@ -49,6 +50,10 @@ impl Attributes {
                 "LineNumberTable" => {
                     let att = LineNumberTableAttribute::parse(file, &att_start)?;
                     attributes.push(Attribute::LineNumberTable(att));
+                }
+                "StackMapTable" => {
+                    let att = StackMapTableAttribute::parse(file, &att_start)?;
+                    attributes.push(Attribute::StackMapTable(att));
                 }
                 _ => {
                     let att = GenericAttribute::parse(file, &att_start)?;
@@ -87,20 +92,15 @@ impl Attribute {
     pub fn to_string(&self, cp: &ConstantPool) -> String {
         let mut s = String::new();
         match self {
-            Attribute::GenericAttribute(att) => {
-                s.push_str(&att.to_string(cp));
-            }
+            Attribute::GenericAttribute(att) => s.push_str(&att.to_string(cp)),
             Attribute::SourceFile(att) => {
                 s.push_str("SourceFile ");
                 s.push_str(&att.to_string(cp));
                 s.push_str("\n");
             }
-            Attribute::Code(att) => {
-                s.push_str(&att.to_string(cp));
-            }
-            Attribute::LineNumberTable(att) => {
-                s.push_str(&att.to_string(cp));
-            }
+            Attribute::Code(att) => s.push_str(&att.to_string(cp)),
+            Attribute::LineNumberTable(att) => s.push_str(&att.to_string(cp)),
+            Attribute::StackMapTable(att) => s.push_str(&att.to_string(cp)),
         }
         s
     }

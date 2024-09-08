@@ -10,12 +10,22 @@ public class Example extends B implements C {
 	public static void main(String[] args) {
 	}
 
-	public long add2(long a, long b) {
-		return a + b;
+	public long add2(long a, long b) throws Exception {
+		var c = a + b;
+		var d = c + 1;
+		if (c > 0) {
+			throw new RuntimeException("c is greater than 0");
+		} else {
+			return d;
+		}
 	}
 
 	public int add(int a, int b) {
-		return 2;
+		try {
+			return (int) add2(a, b);
+		} catch (Exception e) {
+			return 0;
+		}
 	}
 
 	public MyClass1 weird(MyClass2 c1, MyClass1 c2, int b) {
