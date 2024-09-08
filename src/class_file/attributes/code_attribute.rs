@@ -1,8 +1,7 @@
 use super::attributes::AttStart;
 use super::attributes::Attributes;
-use super::bytecode::ByteCode;
-use super::constant_pool::ConstantPool;
-use super::file_reader::FileReader;
+
+use crate::class_file::{bytecode::ByteCode, constant_pool::ConstantPool, file_reader::FileReader};
 use anyhow::Result;
 
 #[derive(Debug)]

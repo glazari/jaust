@@ -29,7 +29,6 @@ ClassFile {
 mod access_flags;
 mod attributes;
 mod bytecode;
-mod code_attribute;
 mod constant_pool;
 mod fields;
 mod file_reader;

@@ -1,6 +1,6 @@
 use super::attributes::Attributes;
 use super::attributes::Attribute;
-use super::code_attribute::CodeAttribute;
+use super::attributes::CodeAttribute;
 use super::file_reader::FileReader;
 use super::constant_pool::ConstantPool;
 use anyhow::Result;
