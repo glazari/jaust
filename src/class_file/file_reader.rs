@@ -37,6 +37,12 @@ impl FileReader {
         Ok(u16::from_be_bytes(buf))
     }
 
+    pub fn read_i16(&mut self) -> Result<i16> {
+        let mut buf = [0; 2];
+        self.file.read_exact(&mut buf)?;
+        Ok(i16::from_be_bytes(buf))
+    }
+
     pub fn read_u4(&mut self) -> Result<U4> {
         let mut buf = [0; 4];
         self.file.read_exact(&mut buf)?;
