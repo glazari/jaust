@@ -10,6 +10,7 @@ pub enum ByteCode {
     New(u16),           // create new object
     InvokeSpecial(u16), // Invoke instance method; special handling for superclass, private, and instance initialization method invocations
     InvokeVirtual(u16), // Invoke instance method; dispatch based on class
+    InvokeDynamic(u16), // Invoke dynamic method
     Duplicate,          // Duplicate the top operand stack value
     AReturn,            // Return reference from method
     ALoad(u8),          // Load reference from local variable
@@ -31,6 +32,9 @@ pub enum ByteCode {
     Ifge(i16),          // Branch if int value >= 0
     Ifgt(i16),          // Branch if int value > 0
     Ifle(i16),          // Branch if int value <= 0
+    PutField(u16),      // Set field in object
+    GetField(u16),      // Fetch field from object
+
 
     Generic(u8),
 }
@@ -47,6 +51,12 @@ impl ByteCode {
             0x59 => (ByteCode::Duplicate, 1),
             0xb7 => (ByteCode::InvokeSpecial(file.read_u2_to_u16()?), 3),
             0xb6 => (ByteCode::InvokeVirtual(file.read_u2_to_u16()?), 3),
+            0xba => {
+                let method_index = file.read_u2_to_u16()?;
+                assert_eq!(file.read_u1()?, 0);
+                assert_eq!(file.read_u1()?, 0);
+                (ByteCode::InvokeDynamic(method_index), 5)
+            }, 
             0xb0 => (ByteCode::AReturn, 1),
             0xb1 => (ByteCode::Return, 1),
             0xad => (ByteCode::LReturn, 1),
@@ -68,6 +78,8 @@ impl ByteCode {
             0x9c => (ByteCode::Ifge(file.read_i16()?), 3),
             0x9d => (ByteCode::Ifgt(file.read_i16()?), 3),
             0x9e => (ByteCode::Ifle(file.read_i16()?), 3),
+            0xb5 => (ByteCode::PutField(file.read_u2_to_u16()?), 3),
+            0xb4 => (ByteCode::GetField(file.read_u2_to_u16()?), 3),
             _ => (ByteCode::Generic(opcode), 1),
         };
         Ok((code, len))
@@ -83,6 +95,7 @@ impl ByteCode {
             ByteCode::Duplicate => "Duplicate".to_string(),
             ByteCode::InvokeSpecial(u16) => format!("InvokeSpecial(0x{:x?})", u16),
             ByteCode::InvokeVirtual(u16) => format!("InvokeVirtual(0x{:x?})", u16),
+            ByteCode::InvokeDynamic(u16) => format!("InvokeDynamic(0x{:x?})", u16),
             ByteCode::AReturn => "Reference Return (areturn)".to_string(),
             ByteCode::Return => "Return void (return)".to_string(),
             ByteCode::LReturn => "Long Return (lreturn)".to_string(),
@@ -103,6 +116,8 @@ impl ByteCode {
             ByteCode::Ifge(i16) => format!("Ifge({})", i16),
             ByteCode::Ifgt(i16) => format!("Ifgt({})", i16),
             ByteCode::Ifle(i16) => format!("Ifle({})", i16),
+            ByteCode::PutField(u16) => format!("PutField(0x{:x?})", u16),
+            ByteCode::GetField(u16) => format!("GetField(0x{:x?})", u16),
             ByteCode::Generic(u8) => format!("Generic(0x{:x?})", u8),
         }
     }
