@@ -28,6 +28,7 @@ public class Example extends B implements C {
 		}
 	}
 
+	@Deprecated
 	public MyClass1 weird(MyClass2 c1, MyClass1 c2, int b) {
 		return new MyClass1();
 	}
@@ -37,8 +38,12 @@ interface C {
 	int add(int a, int b);
 }
 
+class B {
+}
+
 class MyClass1 {
 }
 
 class MyClass2 {
 }
+

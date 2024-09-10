@@ -1,4 +1,7 @@
-use super::{CodeAttribute, GenericAttribute, LineNumberTableAttribute, SourceFileAttribute, StackMapTableAttribute};
+use super::{
+    CodeAttribute, DeprecatedAttribute, ExceptionsAttribute, GenericAttribute,
+    LineNumberTableAttribute, SourceFileAttribute, StackMapTableAttribute,
+};
 
 use crate::class_file::{constant_pool::ConstantPool, file_reader::FileReader};
 use anyhow::Result;
@@ -14,6 +17,8 @@ pub enum Attribute {
     SourceFile(SourceFileAttribute),
     LineNumberTable(LineNumberTableAttribute),
     StackMapTable(StackMapTableAttribute),
+    Deprecated(DeprecatedAttribute),
+    Exceptions(ExceptionsAttribute),
     GenericAttribute(GenericAttribute),
 }
 
@@ -54,6 +59,14 @@ impl Attributes {
                 "StackMapTable" => {
                     let att = StackMapTableAttribute::parse(file, &att_start)?;
                     attributes.push(Attribute::StackMapTable(att));
+                }
+                "Deprecated" => {
+                    let att = DeprecatedAttribute::parse(file, &att_start)?;
+                    attributes.push(Attribute::Deprecated(att));
+                }
+                "Exceptions" => {
+                    let att = ExceptionsAttribute::parse(file, &att_start)?;
+                    attributes.push(Attribute::Exceptions(att));
                 }
                 _ => {
                     let att = GenericAttribute::parse(file, &att_start)?;
@@ -101,6 +114,8 @@ impl Attribute {
             Attribute::Code(att) => s.push_str(&att.to_string(cp)),
             Attribute::LineNumberTable(att) => s.push_str(&att.to_string(cp)),
             Attribute::StackMapTable(att) => s.push_str(&att.to_string(cp)),
+            Attribute::Deprecated(att) => s.push_str(&att.to_string(cp)),
+            Attribute::Exceptions(att) => s.push_str(&att.to_string(cp)),
         }
         s
     }
