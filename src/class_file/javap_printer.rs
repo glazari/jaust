@@ -118,6 +118,7 @@ fn add_methods(cf: &ClassFile, out: &mut String, opts: &Options) {
 
         if signature.name == "<init>" {
             let class_name = cf.constant_pool.get_to_string(cf.this_class);
+            let class_name = class_name.replace("/", ".");
             out.push_str(&class_name);
         } else {
             out.push_str(&signature.return_type);
@@ -214,11 +215,13 @@ pub fn add_class_line(cf: &ClassFile, out: &mut String) {
     add_class_modifiers(cf, out);
 
     let class_name = cf.constant_pool.get_to_string(cf.this_class);
+    let class_name = class_name.replace("/", ".");
     out.push_str(" ");
     out.push_str(&class_name);
 
     if cf.super_class != 0 {
         let super_class_name = cf.constant_pool.get_to_string(cf.super_class);
+        let super_class_name = super_class_name.replace("/", "."); 
         out.push_str(" extends ");
         out.push_str(&super_class_name);
     }
@@ -227,6 +230,7 @@ pub fn add_class_line(cf: &ClassFile, out: &mut String) {
         out.push_str(" implements ");
         for interface in &cf.interfaces.interfaces {
             let interface_name = cf.constant_pool.get_to_string(*interface);
+            let interface_name = interface_name.replace("/", ".");
             out.push_str(&interface_name);
             out.push_str(", ");
         }

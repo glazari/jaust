@@ -11,6 +11,8 @@ const CLASS: u8 = 7;
 const NAME_AND_TYPE: u8 = 12;
 const FIELD_REF: u8 = 9;
 const STRING: u8 = 8;
+const INVOKEDYNAMIC: u8 = 18;
+const METHOD_HANDLE: u8 = 15;
 
 #[derive(Debug)]
 pub enum Info {
@@ -20,6 +22,8 @@ pub enum Info {
     MethodRefInfo(MethodRefInfo),
     FieldRefInfo(FieldRefInfo),
     StringInfo(StringInfo),
+    InvokeDynamicInfo(InvokeDynamicInfo),
+    MethodHandleInfo(MethodHandleInfo),
 }
 
 #[derive(Debug)]
@@ -50,6 +54,63 @@ pub struct StringInfo {
     string_index: u16,
 }
 
+#[derive(Debug)]
+pub struct InvokeDynamicInfo {
+    bootstrap_method_attr_index: u16,
+    name_and_type_index: u16,
+}
+
+#[derive(Debug)]
+pub struct MethodHandleInfo {
+    reference_kind: MethodHandleReferenceKind,
+    reference_index: u16,
+}
+
+#[derive(Debug)]
+pub enum MethodHandleReferenceKind {
+    REF_getField,         // 1     getfield C.f:T
+    REF_getStatic,        // 2     getstatic C.f:T
+    REF_putField,         // 3     putfield C.f:T
+    REF_putStatic,        // 4     putstatic C.f:T
+    REF_invokeVirtual,    // 5     invokevirtual C.m:(A*)T
+    REF_invokeStatic,     // 6     invokestatic C.m:(A*)T
+    REF_invokeSpecial,    // 7     invokespecial C.m:(A*)T
+    REF_newInvokeSpecial, // 8     new C; dup; invokespecial C.<init>:(A*)void
+    REF_invokeInterface,  // 9     invokeinterface C.m:(A*)T
+}
+
+impl MethodHandleReferenceKind {
+    pub fn from_u8(value: u8) -> MethodHandleReferenceKind {
+        match value {
+            1 => MethodHandleReferenceKind::REF_getField,
+            2 => MethodHandleReferenceKind::REF_getStatic,
+            3 => MethodHandleReferenceKind::REF_putField,
+            4 => MethodHandleReferenceKind::REF_putStatic,
+            5 => MethodHandleReferenceKind::REF_invokeVirtual,
+            6 => MethodHandleReferenceKind::REF_invokeStatic,
+            7 => MethodHandleReferenceKind::REF_invokeSpecial,
+            8 => MethodHandleReferenceKind::REF_newInvokeSpecial,
+            9 => MethodHandleReferenceKind::REF_invokeInterface,
+            _ => panic!("invalid reference kind {}", value),
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        let out = match self {
+            MethodHandleReferenceKind::REF_getField => "getField",
+            MethodHandleReferenceKind::REF_getStatic => "getStatic",
+            MethodHandleReferenceKind::REF_putField => "putField",
+            MethodHandleReferenceKind::REF_putStatic => "putStatic",
+            MethodHandleReferenceKind::REF_invokeVirtual => "invokeVirtual",
+            MethodHandleReferenceKind::REF_invokeStatic => "invokeStatic",
+            MethodHandleReferenceKind::REF_invokeSpecial => "invokeSpecial",
+            MethodHandleReferenceKind::REF_newInvokeSpecial => "newInvokeSpecial",
+            MethodHandleReferenceKind::REF_invokeInterface => "invokeInterface",
+        };
+        out.to_string()
+    }
+}
+
 impl ConstantPool {
     pub fn from(file: &mut FileReader) -> Result<ConstantPool> {
         let mut constant_pool = Vec::new();
@@ -77,6 +138,14 @@ impl ConstantPool {
                 }),
                 STRING => Info::StringInfo(StringInfo {
                     string_index: file.read_u2_to_u16()?,
+                }),
+                INVOKEDYNAMIC => Info::InvokeDynamicInfo(InvokeDynamicInfo {
+                    bootstrap_method_attr_index: file.read_u2_to_u16()?,
+                    name_and_type_index: file.read_u2_to_u16()?,
+                }),
+                METHOD_HANDLE => Info::MethodHandleInfo(MethodHandleInfo {
+                    reference_kind: MethodHandleReferenceKind::from_u8(file.read_u1()?),
+                    reference_index: file.read_u2_to_u16()?,
                 }),
                 _ => {
                     println!("tag not implemented: {}", tag);
@@ -138,6 +207,19 @@ impl ConstantPool {
             Info::StringInfo(s) => {
                 let string = self.get(s.string_index);
                 self.info_to_string(string)
+            }
+            Info::InvokeDynamicInfo(i) => {
+                let name_and_type = self.get(i.name_and_type_index);
+                let name_and_type = self.info_to_string(name_and_type);
+                format!(
+                    "InvokeDynamic(bootstrap_index{})[{}]",
+                    i.bootstrap_method_attr_index, name_and_type
+                )
+            }
+            Info::MethodHandleInfo(m) => {
+                let reference = self.get(m.reference_index);
+                let reference = self.info_to_string(reference);
+                format!("MethodHandle({})[{}]", m.reference_kind.to_string(), reference)
             }
         }
     }
