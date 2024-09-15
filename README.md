@@ -36,6 +36,7 @@ https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html
 # TODO next
 - [ ] fill out more bytecode instructins in the bytecode enum
 - [ ] parse more specific attributes
-    - [ ] LineNumberTable
-    - [ ] LocalVariableTable
-    - [ ] SourceDebugExtension
+    - [ ] MethodParamaters
+    - [ ] Record
+    - [ ] BootstrapMethods
+    - [ ] InnerClasses
