@@ -1,7 +1,7 @@
 use super::{
     CodeAttribute, DeprecatedAttribute, ExceptionsAttribute, GenericAttribute,
     LineNumberTableAttribute, RuntimeVisibleAnnotationsAttribute, SourceFileAttribute,
-    StackMapTableAttribute,
+    StackMapTableAttribute, RecordAttribute,
 };
 
 use crate::class_file::{constant_pool::ConstantPool, file_reader::FileReader};
@@ -21,6 +21,7 @@ pub enum Attribute {
     Deprecated(DeprecatedAttribute),
     Exceptions(ExceptionsAttribute),
     RuntimeVisibleAnnotationsAttribute(RuntimeVisibleAnnotationsAttribute),
+    RecordAttribute(RecordAttribute),
     GenericAttribute(GenericAttribute),
 }
 
@@ -74,6 +75,10 @@ impl Attributes {
                     let att = RuntimeVisibleAnnotationsAttribute::parse(file, &att_start)?;
                     attributes.push(Attribute::RuntimeVisibleAnnotationsAttribute(att));
                 }
+                "Record" => {
+                    let att = RecordAttribute::parse(file, &att_start, cp)?;
+                    attributes.push(Attribute::RecordAttribute(att));
+                }
                 _ => {
                     let att = GenericAttribute::parse(file, &att_start)?;
                     attributes.push(Attribute::GenericAttribute(att));
@@ -123,6 +128,7 @@ impl Attribute {
             Attribute::Deprecated(att) => s.push_str(&att.to_string(cp)),
             Attribute::Exceptions(att) => s.push_str(&att.to_string(cp)),
             Attribute::RuntimeVisibleAnnotationsAttribute(att) => s.push_str(&att.to_string(cp)),
+            Attribute::RecordAttribute(att) => s.push_str(&att.to_string(cp)),
         }
         s
     }
