@@ -1,10 +1,11 @@
 use super::{
     CodeAttribute, DeprecatedAttribute, ExceptionsAttribute, GenericAttribute,
     LineNumberTableAttribute, RuntimeVisibleAnnotationsAttribute, SourceFileAttribute,
-    StackMapTableAttribute, RecordAttribute, InnerClassesAttribute
+    StackMapTableAttribute, RecordAttribute, InnerClassesAttribute, MethodParametersAttribute
 };
 
 use crate::class_file::{constant_pool::ConstantPool, file_reader::FileReader};
+use crate::print_debug as p;
 use anyhow::Result;
 
 #[derive(Debug)]
@@ -23,6 +24,7 @@ pub enum Attribute {
     RuntimeVisibleAnnotationsAttribute(RuntimeVisibleAnnotationsAttribute),
     RecordAttribute(RecordAttribute),
     InnerClassesAttribute(InnerClassesAttribute),
+    MethodParametersAttribute(MethodParametersAttribute),
     GenericAttribute(GenericAttribute),
 }
 
@@ -47,6 +49,7 @@ impl Attributes {
             };
 
             let name = cp.get_to_string(attribute_name_index);
+            p!("Attribute name: {}", name);
             match name.as_str() {
                 "Code" => {
                     let att = CodeAttribute::parse(file, &att_start, cp)?;
@@ -83,6 +86,10 @@ impl Attributes {
                 "InnerClasses" => {
                     let att = InnerClassesAttribute::parse(file, &att_start)?;
                     attributes.push(Attribute::InnerClassesAttribute(att));
+                }
+                "MethodParameters" => {
+                    let att = MethodParametersAttribute::parse(file, &att_start)?;
+                    attributes.push(Attribute::MethodParametersAttribute(att));
                 }
                 _ => {
                     let att = GenericAttribute::parse(file, &att_start)?;
@@ -135,6 +142,7 @@ impl Attribute {
             Attribute::RuntimeVisibleAnnotationsAttribute(att) => s.push_str(&att.to_string(cp)),
             Attribute::RecordAttribute(att) => s.push_str(&att.to_string(cp)),
             Attribute::InnerClassesAttribute(att) => s.push_str(&att.to_string(cp)),
+            Attribute::MethodParametersAttribute(att) => s.push_str(&att.to_string(cp)),
         }
         s
     }
