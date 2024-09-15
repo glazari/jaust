@@ -8,6 +8,7 @@ mod deprecated_attribute;
 mod exceptions_attribute;
 mod runtime_visible_annotations_attribute;
 mod record_attribute;
+mod inner_classes_attribute;
 
 pub use attributes::Attribute;
 pub use attributes::Attributes;
@@ -20,3 +21,4 @@ pub use deprecated_attribute::DeprecatedAttribute;
 pub use exceptions_attribute::ExceptionsAttribute;
 pub use runtime_visible_annotations_attribute::RuntimeVisibleAnnotationsAttribute;
 pub use record_attribute::RecordAttribute;
+pub use inner_classes_attribute::InnerClassesAttribute;
