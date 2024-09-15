@@ -1,7 +1,8 @@
 use super::{
-    CodeAttribute, DeprecatedAttribute, ExceptionsAttribute, GenericAttribute,
-    LineNumberTableAttribute, RuntimeVisibleAnnotationsAttribute, SourceFileAttribute,
-    StackMapTableAttribute, RecordAttribute, InnerClassesAttribute, MethodParametersAttribute
+    BootstrapMethodsAttribute, CodeAttribute, DeprecatedAttribute, ExceptionsAttribute,
+    GenericAttribute, InnerClassesAttribute, LineNumberTableAttribute, MethodParametersAttribute,
+    RecordAttribute, RuntimeVisibleAnnotationsAttribute, SourceFileAttribute,
+    StackMapTableAttribute,
 };
 
 use crate::class_file::{constant_pool::ConstantPool, file_reader::FileReader};
@@ -25,6 +26,7 @@ pub enum Attribute {
     RecordAttribute(RecordAttribute),
     InnerClassesAttribute(InnerClassesAttribute),
     MethodParametersAttribute(MethodParametersAttribute),
+    BootstrapMethodsAttribute(BootstrapMethodsAttribute),
     GenericAttribute(GenericAttribute),
 }
 
@@ -91,6 +93,10 @@ impl Attributes {
                     let att = MethodParametersAttribute::parse(file, &att_start)?;
                     attributes.push(Attribute::MethodParametersAttribute(att));
                 }
+                "BootstrapMethods" => {
+                    let att = BootstrapMethodsAttribute::parse(file, &att_start)?;
+                    attributes.push(Attribute::BootstrapMethodsAttribute(att));
+                }
                 _ => {
                     let att = GenericAttribute::parse(file, &att_start)?;
                     attributes.push(Attribute::GenericAttribute(att));
@@ -143,6 +149,7 @@ impl Attribute {
             Attribute::RecordAttribute(att) => s.push_str(&att.to_string(cp)),
             Attribute::InnerClassesAttribute(att) => s.push_str(&att.to_string(cp)),
             Attribute::MethodParametersAttribute(att) => s.push_str(&att.to_string(cp)),
+            Attribute::BootstrapMethodsAttribute(att) => s.push_str(&att.to_string(cp)),
         }
         s
     }
