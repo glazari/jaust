@@ -11,6 +11,7 @@ mod record_attribute;
 mod inner_classes_attribute;
 mod method_parameters_attribute;
 mod bootstrap_methods_attribute;
+mod signature_attribute;
 
 pub use attributes::Attribute;
 pub use attributes::Attributes;
@@ -26,3 +27,4 @@ pub use record_attribute::RecordAttribute;
 pub use inner_classes_attribute::InnerClassesAttribute;
 pub use method_parameters_attribute::MethodParametersAttribute;
 pub use bootstrap_methods_attribute::BootstrapMethodsAttribute;
+pub use signature_attribute::SignatureAttribute;
