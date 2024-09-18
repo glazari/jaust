@@ -1,6 +1,7 @@
 use super::attributes::AttStart;
 use crate::class_file::{constant_pool::ConstantPool, file_reader::FileReader};
 use anyhow::Result;
+use crate::print_debug as p;
 
 #[derive(Debug)]
 pub struct MethodParametersAttribute {
@@ -41,6 +42,7 @@ impl MethodParametersAttribute {
 
     pub fn to_string(&self, cp: &ConstantPool) -> String {
         let mut s = String::new();
+        p!("\nMethodParametersAttribute");
         s.push_str("MethodParameters:");
         for param in &self.parameters {
             s.push_str("\n\t-");
@@ -60,7 +62,15 @@ impl MethodParameter {
 
     pub fn to_string(&self, cp: &ConstantPool) -> String {
         let mut s = String::new();
-        s.push_str(&format!("{} ({:?}, {:?}),", cp.get_to_string(self.name_index), self.access_flags, self.access_flags.flag_vector()));
+        let name = if self.name_index == 0 {
+            "<no name>".to_string()
+        } else {
+            cp.get_to_string(self.name_index)
+        };
+        p!("name: {}", name);
+        let access_flags = self.access_flags.flag_vector();
+        p!("access_flags: {:?}", access_flags);
+        s.push_str(&format!("{} ({:?}, {:?})", name, self.access_flags, access_flags));
         s
     }
 }
