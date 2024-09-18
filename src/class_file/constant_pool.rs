@@ -7,12 +7,14 @@ pub struct ConstantPool {
 
 const UTF8: u8 = 1;
 const METHOD_REF: u8 = 10;
+const INTERFACE_METHOD_REF: u8 = 11;
 const CLASS: u8 = 7;
 const NAME_AND_TYPE: u8 = 12;
 const FIELD_REF: u8 = 9;
 const STRING: u8 = 8;
 const INVOKEDYNAMIC: u8 = 18;
 const METHOD_HANDLE: u8 = 15;
+const METHOD_TYPE: u8 = 16;
 
 #[derive(Debug)]
 pub enum Info {
@@ -24,6 +26,13 @@ pub enum Info {
     StringInfo(StringInfo),
     InvokeDynamicInfo(InvokeDynamicInfo),
     MethodHandleInfo(MethodHandleInfo),
+    InterfaceMethodRefInfo(InterfaceMethodRefInfo),
+    MethodTypeInfo(MethodTypeInfo),
+}
+
+#[derive(Debug)]
+pub struct MethodTypeInfo {
+    descriptor_index: u16,
 }
 
 #[derive(Debug)]
@@ -31,6 +40,13 @@ pub struct MethodRefInfo {
     class_index: u16,
     name_and_type_index: u16,
 }
+
+#[derive(Debug)]
+pub struct InterfaceMethodRefInfo {
+    class_index: u16,
+    name_and_type_index: u16,
+}
+
 
 #[derive(Debug)]
 pub struct ClassInfo {
@@ -68,44 +84,44 @@ pub struct MethodHandleInfo {
 
 #[derive(Debug)]
 pub enum MethodHandleReferenceKind {
-    REF_getField,         // 1     getfield C.f:T
-    REF_getStatic,        // 2     getstatic C.f:T
-    REF_putField,         // 3     putfield C.f:T
-    REF_putStatic,        // 4     putstatic C.f:T
-    REF_invokeVirtual,    // 5     invokevirtual C.m:(A*)T
-    REF_invokeStatic,     // 6     invokestatic C.m:(A*)T
-    REF_invokeSpecial,    // 7     invokespecial C.m:(A*)T
-    REF_newInvokeSpecial, // 8     new C; dup; invokespecial C.<init>:(A*)void
-    REF_invokeInterface,  // 9     invokeinterface C.m:(A*)T
+    RefGetField,         // 1     getfield C.f:T
+    RefGetStatic,        // 2     getstatic C.f:T
+    RefPutField,         // 3     putfield C.f:T
+    RefPutStatic,        // 4     putstatic C.f:T
+    RefInvokeVirtual,    // 5     invokevirtual C.m:(A*)T
+    RefInvokeStatic,     // 6     invokestatic C.m:(A*)T
+    RefInvokeSpecial,    // 7     invokespecial C.m:(A*)T
+    RefNewInvokeSpecial, // 8     new C; dup; invokespecial C.<init>:(A*)void
+    RefInvokeInterface,  // 9     invokeinterface C.m:(A*)T
 }
 
 impl MethodHandleReferenceKind {
     pub fn from_u8(value: u8) -> MethodHandleReferenceKind {
         match value {
-            1 => MethodHandleReferenceKind::REF_getField,
-            2 => MethodHandleReferenceKind::REF_getStatic,
-            3 => MethodHandleReferenceKind::REF_putField,
-            4 => MethodHandleReferenceKind::REF_putStatic,
-            5 => MethodHandleReferenceKind::REF_invokeVirtual,
-            6 => MethodHandleReferenceKind::REF_invokeStatic,
-            7 => MethodHandleReferenceKind::REF_invokeSpecial,
-            8 => MethodHandleReferenceKind::REF_newInvokeSpecial,
-            9 => MethodHandleReferenceKind::REF_invokeInterface,
+            1 => MethodHandleReferenceKind::RefGetField,
+            2 => MethodHandleReferenceKind::RefGetStatic,
+            3 => MethodHandleReferenceKind::RefPutField,
+            4 => MethodHandleReferenceKind::RefPutStatic,
+            5 => MethodHandleReferenceKind::RefInvokeVirtual,
+            6 => MethodHandleReferenceKind::RefInvokeStatic,
+            7 => MethodHandleReferenceKind::RefInvokeSpecial,
+            8 => MethodHandleReferenceKind::RefNewInvokeSpecial,
+            9 => MethodHandleReferenceKind::RefInvokeInterface,
             _ => panic!("invalid reference kind {}", value),
         }
     }
 
     pub fn to_string(&self) -> String {
         let out = match self {
-            MethodHandleReferenceKind::REF_getField => "getField",
-            MethodHandleReferenceKind::REF_getStatic => "getStatic",
-            MethodHandleReferenceKind::REF_putField => "putField",
-            MethodHandleReferenceKind::REF_putStatic => "putStatic",
-            MethodHandleReferenceKind::REF_invokeVirtual => "invokeVirtual",
-            MethodHandleReferenceKind::REF_invokeStatic => "invokeStatic",
-            MethodHandleReferenceKind::REF_invokeSpecial => "invokeSpecial",
-            MethodHandleReferenceKind::REF_newInvokeSpecial => "newInvokeSpecial",
-            MethodHandleReferenceKind::REF_invokeInterface => "invokeInterface",
+            MethodHandleReferenceKind::RefGetField => "getField",
+            MethodHandleReferenceKind::RefGetStatic => "getStatic",
+            MethodHandleReferenceKind::RefPutField => "putField",
+            MethodHandleReferenceKind::RefPutStatic => "putStatic",
+            MethodHandleReferenceKind::RefInvokeVirtual => "invokeVirtual",
+            MethodHandleReferenceKind::RefInvokeStatic => "invokeStatic",
+            MethodHandleReferenceKind::RefInvokeSpecial => "invokeSpecial",
+            MethodHandleReferenceKind::RefNewInvokeSpecial => "newInvokeSpecial",
+            MethodHandleReferenceKind::RefInvokeInterface => "invokeInterface",
         };
         out.to_string()
     }
@@ -146,6 +162,13 @@ impl ConstantPool {
                 METHOD_HANDLE => Info::MethodHandleInfo(MethodHandleInfo {
                     reference_kind: MethodHandleReferenceKind::from_u8(file.read_u1()?),
                     reference_index: file.read_u2_to_u16()?,
+                }),
+                METHOD_TYPE => Info::MethodTypeInfo(MethodTypeInfo {
+                    descriptor_index: file.read_u2_to_u16()?,
+                }),
+                INTERFACE_METHOD_REF => Info::InterfaceMethodRefInfo(InterfaceMethodRefInfo {
+                    class_index: file.read_u2_to_u16()?,
+                    name_and_type_index: file.read_u2_to_u16()?,
                 }),
                 _ => {
                     println!("tag not implemented: {}", tag);
@@ -220,6 +243,15 @@ impl ConstantPool {
                 let reference = self.get(m.reference_index);
                 let reference = self.info_to_string(reference);
                 format!("MethodHandle({})[{}]", m.reference_kind.to_string(), reference)
+            }
+            Info::InterfaceMethodRefInfo(i) => {
+                let class = self.get_to_string(i.class_index);
+                let name_and_type = self.get_to_string(i.name_and_type_index);
+                format!("InterfaceMethod({}.{})", class, name_and_type)
+            }
+            Info::MethodTypeInfo(m) => {
+                let descriptor = self.get_to_string(m.descriptor_index);
+                format!("MethodType({})", descriptor)
             }
         }
     }
