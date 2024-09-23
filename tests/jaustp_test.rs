@@ -55,21 +55,24 @@ fn javap_summary(file: &str) -> Result<String> {
     Ok(out)
 }
 
+fn jaustp_test_template(file: &str) {
+    initialize();
+    let cf = class_file::read_class_file(file).unwrap();
+    let ops = class_file::JavapOptions {
+        private: true,
+        code: false,
+    };
+    let jaustp_out = class_file::jaustp_summary(&cf, &ops);
+    let javap_out = javap_summary(file).unwrap();
+    assert_diff(&jaustp_out, &javap_out, "\n", 0);
+}
+
 macro_rules! javap_tests {
     ($($name:ident: $value:expr,)*) => {
     $(
         #[test]
         fn $name() {
-            initialize();
-            let file = $value;
-            let cf = class_file::read_class_file(file).unwrap();
-            let ops = class_file::JavapOptions {
-                private: true,
-                code: false,
-            };
-            let jaustp_out = class_file::jaustp_summary(&cf, &ops);
-            let javap_out = javap_summary(file).unwrap();
-            assert_diff(&jaustp_out, &javap_out, "\n", 0);
+            jaustp_test_template($value);
         }
     )*
     }
