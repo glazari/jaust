@@ -1,15 +1,14 @@
 use super::access_flags::AccessFlag;
+use super::constant_pool::ConstantPool;
 use super::fields::AccessFlag as FieldAccessFlag;
 use super::methods::AccessFlag as MethodAccessFlag;
-use super::ClassFile;
 use super::methods::Method;
-use super::constant_pool::ConstantPool;
+use super::ClassFile;
 
-use std::str::Chars;
-use anyhow::Result;
 use anyhow::anyhow;
+use anyhow::Result;
 use std::iter::Peekable;
-
+use std::str::Chars;
 
 pub struct Options {
     pub private: bool,
@@ -85,7 +84,9 @@ fn add_fields(cf: &ClassFile, out: &mut String, opts: &Options) {
 
         out.push_str(indent);
         out.push_str(&modifiers.join(" "));
-        out.push_str(" ");
+        if modifiers.len() > 0 {
+            out.push_str(" ");
+        }
 
         let mut descriptor = field_descriptor.chars().peekable();
         let _type = parse_type_descriptor(&mut descriptor).unwrap_or_else(|e| e.to_string());
@@ -106,14 +107,21 @@ fn add_methods(cf: &ClassFile, out: &mut String, opts: &Options) {
             continue;
         }
 
-        let o = flags.iter().map(|f| f.to_str().to_string()).collect::<Vec<String>>().join(" ");
+        let modifiers = flags
+            .iter()
+            .map(|f| f.to_str().to_string())
+            .collect::<Vec<String>>()
+            .join(" ");
         out.push_str(indent);
-        out.push_str(&o);
+        out.push_str(&modifiers);
 
-        out.push_str(" ");
+        if modifiers.len() > 0 {
+            out.push_str(" ");
+        }
 
         let method_name = cf.constant_pool.get_to_string(method.name_index);
-        if method_name == "<clinit>" { // static initializer
+        if method_name == "<clinit>" {
+            // static initializer
             out.push_str("{};\n");
             continue;
         }
@@ -130,7 +138,6 @@ fn add_methods(cf: &ClassFile, out: &mut String, opts: &Options) {
             out.push_str(" ");
             out.push_str(&signature.name);
         }
-
 
         out.push_str("(");
         out.push_str(&signature.args.join(", "));
@@ -153,15 +160,13 @@ fn parse_method_descriptor(descriptor: &str, name: String) -> MethodSignature {
             break;
         }
 
-        let _type = parse_type_descriptor(&mut chars)
-            .unwrap_or_else(|e| e.to_string());
+        let _type = parse_type_descriptor(&mut chars).unwrap_or_else(|e| e.to_string());
         args.push(_type);
     }
     let c = chars.next();
     assert_eq!(c, Some(')'));
 
-    let return_type = parse_type_descriptor(&mut chars)
-        .unwrap_or_else(|e| e.to_string());
+    let return_type = parse_type_descriptor(&mut chars).unwrap_or_else(|e| e.to_string());
 
     MethodSignature {
         name,
@@ -175,7 +180,7 @@ type Pchars<'a> = Peekable<Chars<'a>>;
 fn parse_type_descriptor(chars: &mut Pchars) -> Result<String> {
     let c = chars.next();
     let out = match c {
-        Some('I') => "int", 
+        Some('I') => "int",
         Some('J') => "long",
         Some('F') => "float",
         Some('D') => "double",
@@ -203,11 +208,9 @@ fn parse_type_descriptor(chars: &mut Pchars) -> Result<String> {
             return Ok(arg);
         }
         _ => return Err(anyhow!("Unknown type in method descriptor: {:?}", c)),
-        
     };
     Ok(out.to_string())
 }
-
 
 #[derive(Debug, PartialEq)]
 struct MethodSignature {
@@ -226,9 +229,11 @@ pub fn add_class_line(cf: &ClassFile, out: &mut String) {
 
     if cf.super_class != 0 {
         let super_class_name = cf.constant_pool.get_to_string(cf.super_class);
-        let super_class_name = super_class_name.replace("/", "."); 
-        out.push_str(" extends ");
-        out.push_str(&super_class_name);
+        if super_class_name != "java/lang/Object" {
+            let super_class_name = super_class_name.replace("/", ".");
+            out.push_str(" extends ");
+            out.push_str(&super_class_name);
+        }
     }
 
     if cf.interfaces.interfaces.len() > 0 {
@@ -251,6 +256,14 @@ fn add_class_modifiers(cf: &ClassFile, out: &mut String) {
 
     let mut modifiers = Vec::new();
 
+    let kind = if flags.contains(&AccessFlag::Interface) {
+        "interface"
+    } else if flags.contains(&AccessFlag::Enum) {
+        "enum"
+    } else {
+        "class"
+    };
+
     if flags.contains(&AccessFlag::Public) {
         modifiers.push("public");
     }
@@ -259,30 +272,20 @@ fn add_class_modifiers(cf: &ClassFile, out: &mut String) {
         modifiers.push("final");
     }
 
-    if flags.contains(&AccessFlag::Abstract) {
+    if flags.contains(&AccessFlag::Abstract) && kind != "interface" /* interfaces are always abstract */ {
         modifiers.push("abstract");
     }
 
-    if flags.contains(&AccessFlag::Interface) {
-        modifiers.push("interface");
-    } else if flags.contains(&AccessFlag::Enum) {
-        modifiers.push("enum");
-    } else {
-        modifiers.push("class");
-    }
-
+    modifiers.push(kind);
     out.push_str(&modifiers.join(" "));
 }
 
-
 fn print_code(method: &Method, cp: &ConstantPool, out: &mut String) {
     let code = method.get_code().unwrap();
-    for c in code.code(){
+    for c in code.code() {
         out.push_str(&format!("\t- {}\n", c.to_string()));
     }
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -301,19 +304,33 @@ mod tests {
         let cases = vec![
             ("()V", method_sig("f", vec![], "void")),
             ("(II)I", method_sig("f", vec!["int", "int"], "int")),
-            ("(Ljava/lang/String;)V", method_sig("f", vec!["java.lang.String"], "void")),
-            ("(Ljava/lang/String;I)V", method_sig("f", vec!["java.lang.String", "int"], "void")),
-            ("(Ljava/lang/String;I)I", method_sig("f", vec!["java.lang.String", "int"], "int")),
-            ("(Ljava/lang/String;I)[I", method_sig("f", vec!["java.lang.String", "int"], "int[]")),
-            ("(Ljava/lang/String;I)[[I", method_sig("f", vec!["java.lang.String", "int"], "int[][]")),
+            (
+                "(Ljava/lang/String;)V",
+                method_sig("f", vec!["java.lang.String"], "void"),
+            ),
+            (
+                "(Ljava/lang/String;I)V",
+                method_sig("f", vec!["java.lang.String", "int"], "void"),
+            ),
+            (
+                "(Ljava/lang/String;I)I",
+                method_sig("f", vec!["java.lang.String", "int"], "int"),
+            ),
+            (
+                "(Ljava/lang/String;I)[I",
+                method_sig("f", vec!["java.lang.String", "int"], "int[]"),
+            ),
+            (
+                "(Ljava/lang/String;I)[[I",
+                method_sig("f", vec!["java.lang.String", "int"], "int[][]"),
+            ),
         ];
 
         for (descriptor, expected) in cases {
             let signature = parse_method_descriptor(descriptor, "f".to_string());
             assert_eq!(signature, expected);
         }
-        }
-
+    }
 
     #[test]
     fn test_parse_type_descriptor() {
@@ -336,7 +353,5 @@ mod tests {
             let type_ = parse_type_descriptor(&mut descriptor).unwrap();
             assert_eq!(type_, expected);
         }
-
-        
     }
 }
