@@ -141,7 +141,19 @@ fn add_methods(cf: &ClassFile, out: &mut String, opts: &Options) {
 
         out.push_str("(");
         out.push_str(&signature.args.join(", "));
-        out.push_str(");\n");
+        out.push_str(")");
+
+        let checked_exceptions = method.attributes.get_checked_exceptions(&cf.constant_pool);
+        if checked_exceptions.len() > 0 {
+            let exceptions = checked_exceptions.iter()
+                .map(|e| e.replace('/', "."))
+                .collect::<Vec<String>>() 
+                .join(" ");
+            out.push_str(" throws ");
+            out.push_str(&exceptions);
+        }
+
+        out.push_str(";\n");
         if opts.code {
             print_code(&method, &cf.constant_pool, out);
             out.push_str("\n");

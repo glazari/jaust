@@ -133,6 +133,21 @@ impl Attributes {
         }
         None
     }
+
+    pub fn get_checked_exceptions(&self, cp: &ConstantPool) -> Vec<String> {
+        let mut exceptions = Vec::new();
+        for att in &self.attributes {
+            match att {
+                Attribute::Exceptions(e) => {
+                    e.exception_index_table.iter().for_each(|e_index| 
+                        exceptions.push(cp.get_to_string(*e_index))
+                    );
+                }
+                _ => {}
+            }
+        }
+        exceptions
+    }
 }
 
 impl Attribute {

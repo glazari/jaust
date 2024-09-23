@@ -4,11 +4,12 @@ use crate::class_file::{constant_pool::ConstantPool, file_reader::FileReader};
 
 use anyhow::Result;
 
+/// Indicates which checked exceptions a method may throw
 #[derive(Debug)]
 pub struct ExceptionsAttribute {
     attribute_name_index: u16,
     attribute_length: u32,
-    exception_index_table: Vec<u16>,
+    pub exception_index_table: Vec<u16>,
 }
 
 impl ExceptionsAttribute {
