@@ -47,6 +47,7 @@ use methods::Methods;
 use crate::print_debug as p;
 pub use javap_printer::print_tldr as javap_print;
 pub use javap_printer::Options as JavapOptions;
+pub use javap_printer::jaustp_summary;
 
 use anyhow::Result;
 

@@ -18,6 +18,11 @@ pub struct Options {
 
 /// Print a summary of the class file. like javap does by default.
 pub fn print_tldr(cf: &ClassFile, opts: &Options) {
+    let out = jaustp_summary(cf, opts);
+    print!("{}", out);
+}
+
+pub fn jaustp_summary(cf: &ClassFile, opts: &Options) -> String {
     let mut out = String::new();
     let source = cf.attributes.get_source_file(&cf.constant_pool);
     if let Some(source) = source {
@@ -31,7 +36,7 @@ pub fn print_tldr(cf: &ClassFile, opts: &Options) {
 
     out.push_str("}\n");
 
-    print!("{}", out);
+    out
 }
 
 fn add_fields(cf: &ClassFile, out: &mut String, opts: &Options) {
