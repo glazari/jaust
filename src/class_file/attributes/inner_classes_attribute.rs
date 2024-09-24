@@ -1,8 +1,7 @@
 use super::attributes::AttStart;
-use crate::class_file::{constant_pool::ConstantPool, file_reader::FileReader};
 use crate::class_file::access_flags::AccessFlags;
+use crate::class_file::{constant_pool::ConstantPool, file_reader::FileReader};
 use anyhow::Result;
-
 
 #[derive(Debug)]
 pub struct InnerClassesAttribute {
@@ -47,7 +46,6 @@ impl InnerClassesAttribute {
     }
 }
 
-
 impl InnerClassInfo {
     pub fn parse(file: &mut FileReader) -> Result<InnerClassInfo> {
         Ok(InnerClassInfo {
@@ -67,7 +65,11 @@ impl InnerClassInfo {
         s.push_str(&cp.get_to_string(self.inner_name_index));
         s.push_str(", ");
         let flags = AccessFlags::new(self.inner_class_access_flags);
-        s.push_str(&format!("flags: {:04x} ({:?})", self.inner_class_access_flags, flags.flag_vector()));
+        s.push_str(&format!(
+            "flags: {:04x} ({:?})",
+            self.inner_class_access_flags,
+            flags.flag_vector()
+        ));
         s
     }
 }

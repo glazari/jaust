@@ -1,8 +1,7 @@
-use anyhow::Result;
-use super::file_reader::FileReader;
-use super::constant_pool::ConstantPool;
 use super::attributes::Attributes;
-
+use super::constant_pool::ConstantPool;
+use super::file_reader::FileReader;
+use anyhow::Result;
 
 #[derive(Debug)]
 pub struct Fields {
@@ -81,7 +80,7 @@ impl Fields {
             let name_index = file.read_u2_to_u16()?;
             let descriptor_index = file.read_u2_to_u16()?;
 
-            let attributes = Attributes::from(file, cp)?; 
+            let attributes = Attributes::from(file, cp)?;
 
             fields.push(Field {
                 access_flags,
@@ -98,7 +97,6 @@ impl Fields {
         let mut s = String::new();
 
         for field in &self.fields {
-
             let name = cp.get_to_string(field.name_index);
 
             s.push_str(name.as_str());
@@ -115,14 +113,8 @@ impl Fields {
             s.push_str(format!("{:?}", flags).as_str());
 
             s.push_str("\n");
-
-
-
-
-
-        } 
+        }
 
         s
     }
 }
-

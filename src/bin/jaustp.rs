@@ -1,6 +1,6 @@
-use jaust::class_file;
 use class_file::jaustp_summary_print;
 use class_file::raw_string;
+use jaust::class_file;
 
 use clap::Parser;
 use jaust::class_file::JavapOptions;
@@ -37,7 +37,6 @@ fn main() {
         println!("{}", raw_string(&cf));
         return;
     }
-
 
     jaustp_summary_print(&cf, &ops.into());
 }

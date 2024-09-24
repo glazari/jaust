@@ -1,8 +1,8 @@
-use super::attributes::Attributes;
 use super::attributes::Attribute;
+use super::attributes::Attributes;
 use super::attributes::CodeAttribute;
-use super::file_reader::FileReader;
 use super::constant_pool::ConstantPool;
+use super::file_reader::FileReader;
 use anyhow::Result;
 
 #[derive(Debug)]
@@ -67,8 +67,14 @@ impl Methods {
                 "\n\n- access_flags: {:?}\n",
                 method.access_flags.flag_vector()
             ));
-            s.push_str(&format!("- name: {}\n", cp.get_to_string(method.name_index)));
-            s.push_str(&format!("- descriptor: {}\n", cp.get_to_string(method.descriptor_index)));
+            s.push_str(&format!(
+                "- name: {}\n",
+                cp.get_to_string(method.name_index)
+            ));
+            s.push_str(&format!(
+                "- descriptor: {}\n",
+                cp.get_to_string(method.descriptor_index)
+            ));
             //s.push_str(&format!("{:?}", &method.attributes));
             s.push_str(&format!("{}\n", method.attributes.to_string(cp)));
         }
@@ -86,7 +92,6 @@ impl Method {
         None
     }
 }
-
 
 impl AccessFlags {
     pub fn new(flags: u16) -> AccessFlags {
@@ -131,10 +136,7 @@ impl AccessFlag {
 }
 
 fn add_flag(flags: &mut Vec<AccessFlag>, bit_flags: u16, bit_mask: u16, access_flag: AccessFlag) {
-    if bit_flags & bit_mask == bit_mask  {
+    if bit_flags & bit_mask == bit_mask {
         flags.push(access_flag);
-    } 
+    }
 }
-
-
-

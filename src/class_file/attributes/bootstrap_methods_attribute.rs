@@ -37,7 +37,7 @@ impl BootstrapMethodsAttribute {
             s.push_str(&bm.to_string(cp));
         }
         s.push_str("\n");
-        s   
+        s
     }
 }
 
@@ -49,7 +49,10 @@ impl BootstrapMethod {
         for _ in 0..argument_count {
             arguments.push(file.read_u2_to_u16()?);
         }
-        Ok(BootstrapMethod { method_ref, arguments })
+        Ok(BootstrapMethod {
+            method_ref,
+            arguments,
+        })
     }
 
     pub fn to_string(&self, cp: &ConstantPool) -> String {

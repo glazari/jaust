@@ -33,8 +33,8 @@ mod constant_pool;
 mod fields;
 mod file_reader;
 mod interfaces;
-mod methods;
 mod jaustp;
+mod methods;
 
 use access_flags::AccessFlags;
 use attributes::Attributes;
@@ -45,8 +45,8 @@ use interfaces::Interfaces;
 use methods::Methods;
 
 use crate::print_debug as p;
-pub use jaustp::jaustp_summary_print;
 pub use jaustp::jaustp_summary;
+pub use jaustp::jaustp_summary_print;
 pub use jaustp::JavapOptions;
 
 use anyhow::Result;
@@ -134,9 +134,18 @@ pub fn raw_string(cf: &ClassFile) -> String {
     s.push_str(&format!("minor_version: {}\n", cf.minor_version));
     s.push_str(&format!("major_version: {}\n", cf.major_version));
     s.push_str(&cf.constant_pool.to_string());
-    s.push_str(&format!("access_flags: {:?}\n", cf.access_flags.flag_vector()));
-    s.push_str(&format!("this_class: {}\n", cf.constant_pool.get_to_string(cf.this_class)));
-    s.push_str(&format!("super_class: {}\n", cf.constant_pool.get_to_string(cf.super_class)));
+    s.push_str(&format!(
+        "access_flags: {:?}\n",
+        cf.access_flags.flag_vector()
+    ));
+    s.push_str(&format!(
+        "this_class: {}\n",
+        cf.constant_pool.get_to_string(cf.this_class)
+    ));
+    s.push_str(&format!(
+        "super_class: {}\n",
+        cf.constant_pool.get_to_string(cf.super_class)
+    ));
     s.push_str(&cf.interfaces.to_string(&cf.constant_pool));
     s.push_str(&cf.fields.to_string(&cf.constant_pool));
     s.push_str(&cf.methods.to_string(&cf.constant_pool));

@@ -1,6 +1,6 @@
+use anyhow::Result;
 use std::fs::File;
 use std::io::Read;
-use anyhow::Result;
 
 pub struct FileReader {
     file: File,

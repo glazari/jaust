@@ -47,7 +47,6 @@ pub struct InterfaceMethodRefInfo {
     name_and_type_index: u16,
 }
 
-
 #[derive(Debug)]
 pub struct ClassInfo {
     name_index: u16,
@@ -242,7 +241,11 @@ impl ConstantPool {
             Info::MethodHandleInfo(m) => {
                 let reference = self.get(m.reference_index);
                 let reference = self.info_to_string(reference);
-                format!("MethodHandle({})[{}]", m.reference_kind.to_string(), reference)
+                format!(
+                    "MethodHandle({})[{}]",
+                    m.reference_kind.to_string(),
+                    reference
+                )
             }
             Info::InterfaceMethodRefInfo(i) => {
                 let class = self.get_to_string(i.class_index);

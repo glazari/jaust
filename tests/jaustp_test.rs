@@ -2,10 +2,10 @@ use jaust::class_file;
 
 use text_diff::assert_diff;
 
+use anyhow::Result;
+use std::fs;
 use std::process::Command;
 use std::sync::Once;
-use std::fs;
-use anyhow::Result;
 
 static INIT: Once = Once::new();
 
@@ -15,7 +15,8 @@ fn initialize() {
         fs::remove_dir_all("./test_class_files").unwrap_or(());
 
         // java files to compile (all in test_files recursively that end in .java)
-        let files = fs::read_dir("./test_files").unwrap()
+        let files = fs::read_dir("./test_files")
+            .unwrap()
             .map(|f| f.unwrap().path())
             .filter(|f| f.extension().unwrap() == "java");
 
@@ -23,21 +24,24 @@ fn initialize() {
         let out = Command::new("javac")
             .arg("-d")
             .arg("./test_class_files")
-            .args(files) 
+            .args(files)
             .output()
             .expect("failed to execute javac");
 
         if !out.status.success() {
             let mut msg = format!("javac failed: {:?}", out.status);
-            msg.push_str(&format!("stdout:\n{}", String::from_utf8(out.stdout).unwrap()));
-            msg.push_str(&format!("stderr:\n{}", String::from_utf8(out.stderr).unwrap()));
+            msg.push_str(&format!(
+                "stdout:\n{}",
+                String::from_utf8(out.stdout).unwrap()
+            ));
+            msg.push_str(&format!(
+                "stderr:\n{}",
+                String::from_utf8(out.stderr).unwrap()
+            ));
             panic!("{}", msg);
         }
-
-
     });
 }
-
 
 fn javap_summary(file: &str) -> Result<String> {
     let javap_out = Command::new("javap")
@@ -47,8 +51,14 @@ fn javap_summary(file: &str) -> Result<String> {
         .expect("failed to execute javap");
     if !javap_out.status.success() {
         let mut msg = format!("javap failed: {:?}", javap_out.status);
-        msg.push_str(&format!("stdout:\n{}", String::from_utf8(javap_out.stdout)?));
-        msg.push_str(&format!("stderr:\n{}", String::from_utf8(javap_out.stderr)?));
+        msg.push_str(&format!(
+            "stdout:\n{}",
+            String::from_utf8(javap_out.stdout)?
+        ));
+        msg.push_str(&format!(
+            "stderr:\n{}",
+            String::from_utf8(javap_out.stderr)?
+        ));
         return Err(anyhow::anyhow!(msg));
     }
     let out = String::from_utf8(javap_out.stdout)?;

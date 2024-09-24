@@ -1,13 +1,12 @@
-use anyhow::Result;
-use super::file_reader::FileReader;
 use super::constant_pool::ConstantPool;
+use super::file_reader::FileReader;
+use anyhow::Result;
 
 use crate::print_debug as p;
 
 pub struct Interfaces {
     pub interfaces: Vec<u16>,
 }
-
 
 impl Interfaces {
     pub fn from(file: &mut FileReader) -> Result<Interfaces> {

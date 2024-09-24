@@ -1,7 +1,4 @@
-use crate::class_file::{
-    constant_pool::ConstantPool,
-    methods::Method, 
-};
+use crate::class_file::{constant_pool::ConstantPool, methods::Method};
 
 pub(super) fn print_code(method: &Method, _cp: &ConstantPool, out: &mut String) {
     let code = method.get_code().unwrap();

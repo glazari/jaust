@@ -1,7 +1,7 @@
 use super::attributes::AttStart;
 use crate::class_file::{constant_pool::ConstantPool, file_reader::FileReader};
-use anyhow::Result;
 use crate::print_debug as p;
+use anyhow::Result;
 
 #[derive(Debug)]
 pub struct MethodParametersAttribute {
@@ -70,7 +70,10 @@ impl MethodParameter {
         p!("name: {}", name);
         let access_flags = self.access_flags.flag_vector();
         p!("access_flags: {:?}", access_flags);
-        s.push_str(&format!("{} ({:?}, {:?})", name, self.access_flags, access_flags));
+        s.push_str(&format!(
+            "{} ({:?}, {:?})",
+            name, self.access_flags, access_flags
+        ));
         s
     }
 }
@@ -82,12 +85,11 @@ impl AccessFlags {
         add_flag(&mut flags, self.0, 0x1000, AccessFlag::SYNTHETIC);
         add_flag(&mut flags, self.0, 0x8000, AccessFlag::MANDATED);
         flags
-
     }
 }
 
 fn add_flag(flags: &mut Vec<AccessFlag>, bit_flags: u16, bit_mask: u16, access_flag: AccessFlag) {
-    if bit_flags & bit_mask == bit_mask  {
+    if bit_flags & bit_mask == bit_mask {
         flags.push(access_flag);
-    } 
+    }
 }

@@ -1,8 +1,8 @@
 use super::{
     BootstrapMethodsAttribute, CodeAttribute, DeprecatedAttribute, ExceptionsAttribute,
     GenericAttribute, InnerClassesAttribute, LineNumberTableAttribute, MethodParametersAttribute,
-    RecordAttribute, RuntimeVisibleAnnotationsAttribute, SourceFileAttribute,
-    StackMapTableAttribute, SignatureAttribute
+    RecordAttribute, RuntimeVisibleAnnotationsAttribute, SignatureAttribute, SourceFileAttribute,
+    StackMapTableAttribute,
 };
 
 use crate::class_file::{constant_pool::ConstantPool, file_reader::FileReader};
@@ -139,9 +139,9 @@ impl Attributes {
         for att in &self.attributes {
             match att {
                 Attribute::Exceptions(e) => {
-                    e.exception_index_table.iter().for_each(|e_index| 
-                        exceptions.push(cp.get_to_string(*e_index))
-                    );
+                    e.exception_index_table
+                        .iter()
+                        .for_each(|e_index| exceptions.push(cp.get_to_string(*e_index)));
                 }
                 _ => {}
             }

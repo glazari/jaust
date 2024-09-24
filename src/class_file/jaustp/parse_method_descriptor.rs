@@ -1,14 +1,14 @@
-use anyhow::Result;
 use anyhow::anyhow;
+use anyhow::Result;
 
 use std::iter::Peekable;
 use std::str::Chars;
 
 #[derive(Debug, PartialEq)]
 pub(super) struct MethodSignature {
-   pub(super) name: String,
-   pub(super) args: Vec<String>,
-   pub(super) return_type: String,
+    pub(super) name: String,
+    pub(super) args: Vec<String>,
+    pub(super) return_type: String,
 }
 
 pub(super) fn parse_method_descriptor(descriptor: &str, name: String) -> MethodSignature {

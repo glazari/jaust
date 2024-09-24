@@ -1,17 +1,12 @@
 use crate::class_file::{
-    fields::AccessFlag as FieldAccessFlag,
-    methods::AccessFlag as MethodAccessFlag,
-    access_flags::AccessFlag,
-    ClassFile,
+    access_flags::AccessFlag, fields::AccessFlag as FieldAccessFlag,
+    methods::AccessFlag as MethodAccessFlag, ClassFile,
 };
 
 use crate::class_file::jaustp::{
-    print_code::print_code,
     parse_method_descriptor::parse_method_descriptor,
-    parse_method_descriptor::parse_type_descriptor,
+    parse_method_descriptor::parse_type_descriptor, print_code::print_code,
 };
-
-
 
 pub struct Options {
     pub private: bool,
@@ -40,7 +35,6 @@ pub fn jaustp_summary(cf: &ClassFile, opts: &Options) -> String {
 
     out
 }
-
 
 fn add_fields(cf: &ClassFile, out: &mut String, opts: &Options) {
     let indent = "  ";
@@ -80,7 +74,6 @@ fn add_fields(cf: &ClassFile, out: &mut String, opts: &Options) {
 
         // Synthetic fields are not marked synthetic in javap
         // Enum fields are not marked enum in javap
-        
 
         out.push_str(indent);
         out.push_str(&modifiers.join(" "));
@@ -146,9 +139,10 @@ fn add_methods(cf: &ClassFile, out: &mut String, opts: &Options) {
 
         let checked_exceptions = method.attributes.get_checked_exceptions(&cf.constant_pool);
         if checked_exceptions.len() > 0 {
-            let exceptions = checked_exceptions.iter()
+            let exceptions = checked_exceptions
+                .iter()
                 .map(|e| e.replace('/', "."))
-                .collect::<Vec<String>>() 
+                .collect::<Vec<String>>()
                 .join(" ");
             out.push_str(" throws ");
             out.push_str(&exceptions);
@@ -194,7 +188,6 @@ pub fn add_class_line(cf: &ClassFile, out: &mut String) {
     out.push_str(" {\n");
 }
 
-
 fn add_class_modifiers(cf: &ClassFile, out: &mut String) {
     let flags = cf.access_flags.flag_vector();
 
@@ -216,7 +209,9 @@ fn add_class_modifiers(cf: &ClassFile, out: &mut String) {
         modifiers.push("final");
     }
 
-    if flags.contains(&AccessFlag::Abstract) && kind != "interface" /* interfaces are always abstract */ {
+    if flags.contains(&AccessFlag::Abstract) && kind != "interface"
+    /* interfaces are always abstract */
+    {
         modifiers.push("abstract");
     }
 
