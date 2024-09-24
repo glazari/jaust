@@ -33,8 +33,8 @@ mod constant_pool;
 mod fields;
 mod file_reader;
 mod interfaces;
-mod javap_printer;
 mod methods;
+mod jaustp;
 
 use access_flags::AccessFlags;
 use attributes::Attributes;
@@ -45,9 +45,9 @@ use interfaces::Interfaces;
 use methods::Methods;
 
 use crate::print_debug as p;
-pub use javap_printer::print_tldr as javap_print;
-pub use javap_printer::Options as JavapOptions;
-pub use javap_printer::jaustp_summary;
+pub use jaustp::jaustp_summary_print;
+pub use jaustp::jaustp_summary;
+pub use jaustp::JavapOptions;
 
 use anyhow::Result;
 

@@ -1,5 +1,5 @@
 use jaust::class_file;
-use class_file::javap_print;
+use class_file::jaustp_summary_print;
 use class_file::raw_string;
 
 use clap::Parser;
@@ -39,5 +39,5 @@ fn main() {
     }
 
 
-    javap_print(&cf, &ops.into());
+    jaustp_summary_print(&cf, &ops.into());
 }

@@ -1,14 +1,17 @@
-use super::access_flags::AccessFlag;
-use super::constant_pool::ConstantPool;
-use super::fields::AccessFlag as FieldAccessFlag;
-use super::methods::AccessFlag as MethodAccessFlag;
-use super::methods::Method;
-use super::ClassFile;
+use crate::class_file::{
+    fields::AccessFlag as FieldAccessFlag,
+    methods::AccessFlag as MethodAccessFlag,
+    access_flags::AccessFlag,
+    ClassFile,
+};
 
-use anyhow::anyhow;
-use anyhow::Result;
-use std::iter::Peekable;
-use std::str::Chars;
+use crate::class_file::jaustp::{
+    print_code::print_code,
+    parse_method_descriptor::parse_method_descriptor,
+    parse_method_descriptor::parse_type_descriptor,
+};
+
+
 
 pub struct Options {
     pub private: bool,
@@ -16,7 +19,7 @@ pub struct Options {
 }
 
 /// Print a summary of the class file. like javap does by default.
-pub fn print_tldr(cf: &ClassFile, opts: &Options) {
+pub fn jaustp_summary_print(cf: &ClassFile, opts: &Options) {
     let out = jaustp_summary(cf, opts);
     print!("{}", out);
 }
@@ -37,6 +40,7 @@ pub fn jaustp_summary(cf: &ClassFile, opts: &Options) -> String {
 
     out
 }
+
 
 fn add_fields(cf: &ClassFile, out: &mut String, opts: &Options) {
     let indent = "  ";
@@ -74,13 +78,9 @@ fn add_fields(cf: &ClassFile, out: &mut String, opts: &Options) {
             modifiers.push("transient");
         }
 
-        if flags.contains(&FieldAccessFlag::Synthetic) {
-            modifiers.push("synthetic");
-        }
-
-        if flags.contains(&FieldAccessFlag::Enum) {
-            modifiers.push("enum");
-        }
+        // Synthetic fields are not marked synthetic in javap
+        // Enum fields are not marked enum in javap
+        
 
         out.push_str(indent);
         out.push_str(&modifiers.join(" "));
@@ -110,6 +110,7 @@ fn add_methods(cf: &ClassFile, out: &mut String, opts: &Options) {
         let modifiers = flags
             .iter()
             .map(|f| f.to_str().to_string())
+            .filter(|s| s != "synthetic") // synthetic methods are not marked synthetic in javap
             .collect::<Vec<String>>()
             .join(" ");
         out.push_str(indent);
@@ -161,76 +162,6 @@ fn add_methods(cf: &ClassFile, out: &mut String, opts: &Options) {
     }
 }
 
-fn parse_method_descriptor(descriptor: &str, name: String) -> MethodSignature {
-    let mut args = Vec::new();
-
-    let mut chars = descriptor.chars().peekable();
-    let c = chars.next().unwrap();
-    assert_eq!(c, '(');
-    loop {
-        if let Some(')') = chars.peek() {
-            break;
-        }
-
-        let _type = parse_type_descriptor(&mut chars).unwrap_or_else(|e| e.to_string());
-        args.push(_type);
-    }
-    let c = chars.next();
-    assert_eq!(c, Some(')'));
-
-    let return_type = parse_type_descriptor(&mut chars).unwrap_or_else(|e| e.to_string());
-
-    MethodSignature {
-        name,
-        args,
-        return_type,
-    }
-}
-
-type Pchars<'a> = Peekable<Chars<'a>>;
-
-fn parse_type_descriptor(chars: &mut Pchars) -> Result<String> {
-    let c = chars.next();
-    let out = match c {
-        Some('I') => "int",
-        Some('J') => "long",
-        Some('F') => "float",
-        Some('D') => "double",
-        Some('S') => "short",
-        Some('B') => "byte",
-        Some('C') => "char",
-        Some('Z') => "boolean",
-        Some('V') => "void",
-        Some('L') => {
-            let mut arg = String::new();
-            loop {
-                let c = chars.next();
-                match c {
-                    Some(';') | Some(')') => break,
-                    Some('/') => arg.push('.'),
-                    Some(c) => arg.push(c),
-                    None => return Err(anyhow!("Unexpected end of method descriptor")),
-                }
-            }
-            return Ok(arg);
-        }
-        Some('[') => {
-            let mut arg = parse_type_descriptor(chars)?;
-            arg.push_str("[]");
-            return Ok(arg);
-        }
-        _ => return Err(anyhow!("Unknown type in method descriptor: {:?}", c)),
-    };
-    Ok(out.to_string())
-}
-
-#[derive(Debug, PartialEq)]
-struct MethodSignature {
-    name: String,
-    args: Vec<String>,
-    return_type: String,
-}
-
 pub fn add_class_line(cf: &ClassFile, out: &mut String) {
     add_class_modifiers(cf, out);
 
@@ -263,6 +194,7 @@ pub fn add_class_line(cf: &ClassFile, out: &mut String) {
     out.push_str(" {\n");
 }
 
+
 fn add_class_modifiers(cf: &ClassFile, out: &mut String) {
     let flags = cf.access_flags.flag_vector();
 
@@ -290,80 +222,4 @@ fn add_class_modifiers(cf: &ClassFile, out: &mut String) {
 
     modifiers.push(kind);
     out.push_str(&modifiers.join(" "));
-}
-
-fn print_code(method: &Method, cp: &ConstantPool, out: &mut String) {
-    let code = method.get_code().unwrap();
-    for c in code.code() {
-        out.push_str(&format!("\t- {}\n", c.to_string()));
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn method_sig(name: &str, args: Vec<&str>, return_type: &str) -> MethodSignature {
-        MethodSignature {
-            name: name.to_string(),
-            args: args.iter().map(|s| s.to_string()).collect(),
-            return_type: return_type.to_string(),
-        }
-    }
-
-    #[test]
-    fn test_parse_method_descriptor() {
-        let cases = vec![
-            ("()V", method_sig("f", vec![], "void")),
-            ("(II)I", method_sig("f", vec!["int", "int"], "int")),
-            (
-                "(Ljava/lang/String;)V",
-                method_sig("f", vec!["java.lang.String"], "void"),
-            ),
-            (
-                "(Ljava/lang/String;I)V",
-                method_sig("f", vec!["java.lang.String", "int"], "void"),
-            ),
-            (
-                "(Ljava/lang/String;I)I",
-                method_sig("f", vec!["java.lang.String", "int"], "int"),
-            ),
-            (
-                "(Ljava/lang/String;I)[I",
-                method_sig("f", vec!["java.lang.String", "int"], "int[]"),
-            ),
-            (
-                "(Ljava/lang/String;I)[[I",
-                method_sig("f", vec!["java.lang.String", "int"], "int[][]"),
-            ),
-        ];
-
-        for (descriptor, expected) in cases {
-            let signature = parse_method_descriptor(descriptor, "f".to_string());
-            assert_eq!(signature, expected);
-        }
-    }
-
-    #[test]
-    fn test_parse_type_descriptor() {
-        let cases = vec![
-            ("I", "int"),
-            ("J", "long"),
-            ("F", "float"),
-            ("D", "double"),
-            ("S", "short"),
-            ("B", "byte"),
-            ("C", "char"),
-            ("Z", "boolean"),
-            ("V", "void"),
-            ("Lcom/example/Class;", "com.example.Class"),
-            ("[Lcom/example/Class;", "com.example.Class[]"),
-        ];
-
-        for (descriptor, expected) in cases {
-            let mut descriptor = descriptor.chars().peekable();
-            let type_ = parse_type_descriptor(&mut descriptor).unwrap();
-            assert_eq!(type_, expected);
-        }
-    }
 }
