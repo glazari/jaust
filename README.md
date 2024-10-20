@@ -39,8 +39,4 @@ https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html
 - [ ] parse more specific constant pool entries tags
     - [ ] 11 CONSTANT_InterfaceMethodref
 - [ ] add verbose output to jaustp that matches javap -v
-- [ ] add automated test to cover example java class files
-- [ ] print `throws Exception` like javap for test
-- [ ] don't print `extends java.lang.Object` in the jaustp output to match javap
-- [ ] don't print `abstract interface` in the jaustp output to match javap (all interfaces are abstract?)
 - [ ] use class and method signature attribute when present to capture the generic types that otherwise are lost (for jaustp)
